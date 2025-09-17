@@ -68,7 +68,7 @@ let startTime = null;
 function renderQuestion(index) {
   title.textContent = `Question ${index + 1} / ${QUESTIONS.length}`;
   para.textContent = QUESTIONS[index].question;
-
+  // para.style = "color: red; font-size: 50px";
   container.innerHTML = "";
 
   QUESTIONS[index].options.forEach((optText, i) => {
