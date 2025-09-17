@@ -1,58 +1,215 @@
 const QUESTIONS = [
   {
-    question: "Quelle est la capitale de la France ?",
-    options: ["Lyon", "Paris", "Marseille"],
-    correct: 1,
-  },
-  {
-    question: "En JavaScript, lequel est un type primitif ?",
-    options: ["Object", "Array", "Number"],
-    correct: 2,
-  },
-  {
-    question: "HTML signifie :",
-    options: ["HyperText Markup Language", "Home Tool Markup Language"],
-    correct: 0,
-  },
-  {
-    question: "Le CSS sert à :",
-    options: [
-      "Structurer le contenu",
-      "Styliser le contenu",
-      "Programmer la logique",
+    level: "easy",
+    questions: [
+      {
+        question: "Quelle est la capitale de la France ?",
+        options: ["Lyon", "Paris", "Marseille"],
+        correct: [1],
+      },
+      {
+        question: "HTML signifie :",
+        options: ["HyperText Markup Language", "Home Tool Markup Language"],
+        correct: [0],
+      },
+      {
+        question: "Quelle balise HTML correspond à un paragraphe ?",
+        options: ["<p>", "<div>", "<span>"],
+        correct: [0],
+      },
+      {
+        question: "Le CSS sert à :",
+        options: [
+          "Structurer le contenu",
+          "Styliser le contenu",
+          "Programmer la logique",
+        ],
+        correct: [1],
+      },
+      {
+        question:
+          "Quelle couleur obtient-on en mélangeant le rouge et le bleu (synthèse soustractive) ?",
+        options: ["Vert", "Violet", "Orange"],
+        correct: [1],
+      },
+      {
+        question: "Combien de minutes dans une heure ?",
+        options: ["30", "60", "90"],
+        correct: [1],
+      },
+      {
+        question: "Quel animal est connu comme le « roi de la jungle » ?",
+        options: ["Éléphant", "Lion", "Tigre"],
+        correct: [1],
+      },
+      {
+        question: "Quel nombre suit 9 dans la suite naturelle ?",
+        options: ["8", "9", "10"],
+        correct: [2],
+      },
+      {
+        question: "Quel est l'élément principal de la structure HTML ?",
+        options: ["<section>", "<body>", "<script>"],
+        correct: [1],
+      },
+      {
+        question:
+          "Parmi ces éléments, lesquels sont des balises inline en HTML ?",
+        options: ["<div>", "<span>", "<strong>"],
+        correct: [1, 2], // multiple correct
+      },
     ],
-    correct: 1,
   },
+
   {
-    question: "Quelle balise HTML correspond à un paragraphe ?",
-    options: ["<p>", "<div>", "<span>"],
-    correct: 0,
+    level: "medium",
+    questions: [
+      {
+        question: "En JavaScript, lequel est un type primitif ?",
+        options: ["Object", "Array", "Number"],
+        correct: [2],
+      },
+      {
+        question: "Quel opérateur compare sans convertir les types ?",
+        options: ["==", "==="],
+        correct: [1],
+      },
+      {
+        question:
+          "Quelle méthode permet d'ajouter un écouteur d'événement en JS ?",
+        options: ["addEventListener", "attachEvent"],
+        correct: [0],
+      },
+      {
+        question: "Quelle propriété retourne la longueur d'une chaîne en JS ?",
+        options: ["len()", "length", "size()"],
+        correct: [1],
+      },
+      {
+        question: "Quel mot-clé déclare une constante en JavaScript ?",
+        options: ["let", "var", "const"],
+        correct: [2],
+      },
+      {
+        question:
+          "Quel(s) mot(s)-clé(s) servent à déclarer une variable en JS moderne ?",
+        options: ["var", "let", "const"],
+        correct: [1, 2], // multiple correct
+      },
+      {
+        question: "Quelle instruction arrête une boucle immédiatement ?",
+        options: ["continue", "break", "return"],
+        correct: [1],
+      },
+      {
+        question:
+          "Pour sélectionner un élément avec l'id 'app' en JS, on utilise :",
+        options: [
+          "document.query('#app')",
+          "document.getElementById('app')",
+          "document.$('#app')",
+        ],
+        correct: [1],
+      },
+      {
+        question: "Quel est le bon moyen d'ajouter du CSS depuis JS ?",
+        options: [
+          "element.style.color = 'red';",
+          "element.css('color','red');",
+        ],
+        correct: [0],
+      },
+      {
+        question: "Parmi ces méthodes Array, lesquelles existent en JS ?",
+        options: ["map()", "collect()", "filter()"],
+        correct: [0, 2], // multiple correct
+      },
+    ],
   },
+
   {
-    question: "Quelle méthode permet d'ajouter un écouteur d'événement en JS ?",
-    options: ["addEventListener", "attachEvent"],
-    correct: 0,
-  },
-  {
-    question: "Quel opérateur compare sans convertir les types ?",
-    options: ["==", "==="],
-    correct: 1,
-  },
-  {
-    question: "Quelle propriété retourne la longueur d'une chaîne en JS ?",
-    options: ["len()", "length", "size()"],
-    correct: 1,
-  },
-  {
-    question: "Quel mot-clé déclare une constante en JavaScript ?",
-    options: ["let", "var", "const"],
-    correct: 2,
-  },
-  {
-    question:
-      "Comment centrer un block (largeur fixe) horizontalement en CSS ?",
-    options: ["margin: 0 auto;", "text-align: center;"],
-    correct: 0,
+    level: "hard",
+    questions: [
+      {
+        question: "Quelle est la sortie de : `console.log(typeof NaN);` ?",
+        options: ["'number'", "'NaN'", "'undefined'"],
+        correct: [0],
+      },
+      {
+        question: "Quel est le résultat de `[] + []` en JavaScript ?",
+        options: ["0", "'' (empty string)", "TypeError"],
+        correct: [1],
+      },
+      {
+        question:
+          "Quelle(s) propriété(s) CSS sont nécessaires pour centrer un élément flex horizontalement et verticalement ?",
+        options: [
+          "justify-content et align-items",
+          "text-align et vertical-align",
+          "margin: 0 auto",
+        ],
+        correct: [0],
+      },
+      {
+        question:
+          "En JS, laquelle de ces déclarations crée une fonction fléchée ?",
+        options: [
+          "function foo() {}",
+          "const foo = () => {}",
+          "const foo = function => {}",
+        ],
+        correct: [1],
+      },
+      {
+        question: "Que fait la méthode `event.preventDefault()` ?",
+        options: [
+          "Empêche l'action par défaut de l'événement",
+          "Arrête la propagation de l'événement",
+          "Supprime l'écouteur",
+        ],
+        correct: [0],
+      },
+      {
+        question:
+          "Quel est le scope d'une variable déclarée avec `var` à l'intérieur d'une fonction ?",
+        options: ["Bloc (block)", "Fonction (function)", "Global"],
+        correct: [1],
+      },
+      {
+        question:
+          "Parmi ces techniques, lesquelles sont valables pour rendre une page accessible ?",
+        options: [
+          "Ajouter des attributs aria",
+          "Utiliser uniquement images pour tout le contenu",
+          "Utiliser des labels pour les champs de formulaire",
+        ],
+        correct: [0, 2], // multiple correct
+      },
+      {
+        question: "Quelle est la différence principale entre `==` et `===` ?",
+        options: [
+          "Aucune, c'est la même chose",
+          "`==` compare sans type, `===` compare avec type",
+          "`===` convertit toujours les types",
+        ],
+        correct: [1],
+      },
+      {
+        question:
+          "Quelle(s) des énoncées suivantes concernant les Promises est/sont vraies ?",
+        options: [
+          "Une promise peut être résolue plusieurs fois",
+          "Une promise peut être rejetée une seule fois",
+          "Une promise est immuable une fois résolue ou rejetée",
+        ],
+        correct: [1, 2], // multiple correct
+      },
+      {
+        question: "Quel est le résultat de `typeof null` ?",
+        options: ["'object'", "'null'", "'undefined'"],
+        correct: [0],
+      },
+    ],
   },
 ];
 
@@ -65,16 +222,20 @@ let levelChoosed = "";
 let currentIndex = 0;
 let answersSelected = [];
 let startTime = null;
+let activeQuestions = [];
 
 function renderQuestion(index) {
-  title.textContent = `Question ${index + 1} / ${QUESTIONS.length}`;
-  para.textContent = QUESTIONS[index].question;
+  const q = activeQuestions[index];
+
+  title.textContent = `Question ${index + 1} / ${activeQuestions.length}`;
+  para.textContent = q.question;
   container.innerHTML = "";
 
-  QUESTIONS[index].options.forEach((optText, i) => {
+  const multiple = q.correct.length > 1;
+  q.options.forEach((optText, i) => {
     const input = document.createElement("input");
     const inputId = `q${index}_opt${i}`;
-    input.type = "radio";
+    input.type = multiple ? "checkbox" : "radio";
     input.id = inputId;
     input.name = `q${index}`;
     input.value = i;
@@ -97,18 +258,44 @@ function renderQuestion(index) {
   validateButton.addEventListener(
     "click",
     function () {
-      const checked = container.querySelector(
-        `input[name="q${index}"]:checked`
-      );
-      if (!checked) {
-        alert("Choose an answer please!");
-        return;
+      if (multiple) {
+        const checkedNodes = container.querySelectorAll(
+          `input[name="q${index}"]:checked`
+        );
+        if (!checkedNodes || checkedNodes.length === 0) {
+          alert("Choose at least one answer please!");
+          return;
+        }
+        // Array.from(x) converts a list x into real array
+        const selected = Array.from(checkedNodes)
+          .map((n) => Number(n.value))
+          .sort((a, b) => a - b);
+        const correct = q.correct
+          .slice()
+          .map(Number)
+          .sort((a, b) => a - b);
+
+        const isCorrect =
+          selected.length === correct.length &&
+          // every() returns true if every element from selected
+          //  passes the function inside of it
+          selected.every((v, i) => v === correct[i]);
+        // !!x turns x strictly to a boolean
+        answersSelected[index] = !!isCorrect;
+      } else {
+        const checked = container.querySelector(
+          `input[name="q${index}"]:checked`
+        );
+        if (!checked) {
+          alert("Choose an answer please!");
+          return;
+        }
+        const selectedIndex = Number(checked.value);
+        answersSelected[index] = selectedIndex === Number(q.correct[0]);
       }
-      const selectedIndex = Number(checked.value);
-      answersSelected[index] = selectedIndex === QUESTIONS[index].correct;
 
       currentIndex++;
-      if (currentIndex < QUESTIONS.length) {
+      if (currentIndex < activeQuestions.length) {
         renderQuestion(currentIndex);
       } else {
         const elapsed = Date.now() - startTime;
@@ -116,11 +303,26 @@ function renderQuestion(index) {
         showResult(correctCount, elapsed);
       }
     },
+    // runs the event listener only once
     { once: true }
   );
 }
 
 function StartQuiz() {
+  let found = null;
+  for (let i = 0; i < QUESTIONS.length; i++) {
+    if (QUESTIONS[i].level === levelChoosed) {
+      found = QUESTIONS[i];
+      break;
+    }
+  }
+  if (!found) {
+    alert("No questions found for this level.");
+    return;
+  }
+
+  activeQuestions = found.questions.slice();
+
   start.style.display = "none";
   currentIndex = 0;
   answersSelected = [];
@@ -133,11 +335,13 @@ function showResult(score, elapsedMs) {
   container.innerHTML = "";
 
   title.textContent = "Quiz terminé";
-  para.textContent = `Score: ${score} / ${QUESTIONS.length}`;
+  para.textContent = `Score: ${score} / ${activeQuestions.length}`;
 
   const message = document.createElement("p");
-  if (score < 5) message.innerText = "Revise your knowledge";
-  else if (score === 5) message.innerText = "Could be better";
+  if (score < Math.ceil(activeQuestions.length / 2))
+    message.innerText = "Revise your knowledge";
+  else if (score === Math.ceil(activeQuestions.length / 2))
+    message.innerText = "Could be better";
   else message.innerText = "VERY GOOD";
 
   const timeText = document.createElement("p");
