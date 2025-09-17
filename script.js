@@ -60,7 +60,8 @@ const start = document.getElementById("start-quiz");
 const title = document.querySelector("h1");
 const para = document.querySelector("p");
 const container = document.getElementById("container");
-
+let challenger = "";
+let levelChoosed = "";
 let currentIndex = 0;
 let answersSelected = [];
 let startTime = null;
@@ -68,7 +69,6 @@ let startTime = null;
 function renderQuestion(index) {
   title.textContent = `Question ${index + 1} / ${QUESTIONS.length}`;
   para.textContent = QUESTIONS[index].question;
-  // para.style = "color: red; font-size: 50px";
   container.innerHTML = "";
 
   QUESTIONS[index].options.forEach((optText, i) => {
@@ -167,4 +167,69 @@ function restartQuiz() {
   start.style.display = "";
 }
 
-start.addEventListener("click", StartQuiz);
+function choiceLevelName() {
+  title.textContent = "JSQuizStarter";
+  para.textContent = "Please choose name and a level before starting";
+  container.innerHTML = "";
+  start.style.display = "none";
+
+  const usernameInput = document.createElement("input");
+  const nameLabel = document.createElement("label");
+  nameLabel.textContent = "Username";
+  usernameInput.type = "text";
+  usernameInput.name = "username";
+  container.appendChild(nameLabel);
+  container.appendChild(usernameInput);
+
+  const levels = ["easy", "medium", "hard"];
+  levels.forEach((level) => {
+    const choiceInput = document.createElement("input");
+    const choiceLabel = document.createElement("label");
+
+    choiceInput.id = `level-${level}`;
+    choiceInput.type = "radio";
+    choiceInput.name = "level";
+    choiceInput.value = level;
+
+    choiceLabel.htmlFor = choiceInput.id;
+    choiceLabel.textContent = level;
+
+    container.appendChild(choiceInput);
+    container.appendChild(choiceLabel);
+  });
+
+  const validateButton = document.createElement("button");
+  validateButton.type = "button";
+  validateButton.id = "validate-button";
+  validateButton.innerText = "Validate";
+  container.appendChild(validateButton);
+
+  validateButton.addEventListener("click", function () {
+    const checkedLevelInput = container.querySelector(
+      'input[name="level"]:checked'
+    );
+    const username = usernameInput.value ? usernameInput.value.trim() : "";
+
+    if (!username) {
+      alert("Please enter your name before starting.");
+      usernameInput.focus();
+      return;
+    }
+
+    if (!checkedLevelInput) {
+      alert("Choose a level please!");
+      return;
+    }
+
+    challenger = username;
+    levelChoosed = checkedLevelInput.value;
+
+    localStorage.setItem("username", challenger);
+    localStorage.setItem("level", levelChoosed);
+
+    StartQuiz();
+  });
+}
+
+
+start.addEventListener("click", choiceLevelName);
