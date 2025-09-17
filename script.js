@@ -125,6 +125,7 @@ function StartQuiz() {
   currentIndex = 0;
   answersSelected = [];
   startTime = Date.now();
+
   renderQuestion(currentIndex);
 }
 
@@ -169,17 +170,32 @@ function restartQuiz() {
 
 function choiceLevelName() {
   title.textContent = "JSQuizStarter";
-  para.textContent = "Please choose name and a level before starting";
+
+  const storedName = localStorage.getItem("username");
+  const askingForName = !storedName;
+
+  para.textContent = askingForName
+    ? "Please choose name and a level before starting"
+    : `Welcome back, ${storedName}. Please choose a level to start.`;
+
   container.innerHTML = "";
   start.style.display = "none";
 
-  const usernameInput = document.createElement("input");
-  const nameLabel = document.createElement("label");
-  nameLabel.textContent = "Username";
-  usernameInput.type = "text";
-  usernameInput.name = "username";
-  container.appendChild(nameLabel);
-  container.appendChild(usernameInput);
+  let usernameInput = null;
+  if (askingForName) {
+    const nameLabel = document.createElement("label");
+    nameLabel.textContent = "Username";
+    usernameInput = document.createElement("input");
+    usernameInput.type = "text";
+    usernameInput.name = "username";
+    container.appendChild(nameLabel);
+    container.appendChild(usernameInput);
+  } else {
+    const note = document.createElement("div");
+    note.textContent = `Using saved name: ${storedName}`;
+    note.style.marginBottom = "8px";
+    container.appendChild(note);
+  }
 
   const levels = ["easy", "medium", "hard"];
   levels.forEach((level) => {
@@ -208,11 +224,16 @@ function choiceLevelName() {
     const checkedLevelInput = container.querySelector(
       'input[name="level"]:checked'
     );
-    const username = usernameInput.value ? usernameInput.value.trim() : "";
 
-    if (!username) {
+    const username = askingForName
+      ? usernameInput.value
+        ? usernameInput.value.trim()
+        : ""
+      : storedName;
+
+    if (askingForName && !username) {
       alert("Please enter your name before starting.");
-      usernameInput.focus();
+      if (usernameInput) usernameInput.focus();
       return;
     }
 
@@ -224,12 +245,14 @@ function choiceLevelName() {
     challenger = username;
     levelChoosed = checkedLevelInput.value;
 
-    localStorage.setItem("username", challenger);
+    if (askingForName) {
+      localStorage.setItem("username", challenger);
+    }
+
     localStorage.setItem("level", levelChoosed);
 
     StartQuiz();
   });
 }
-
 
 start.addEventListener("click", choiceLevelName);
