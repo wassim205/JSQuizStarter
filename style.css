@@ -3,11 +3,19 @@ body {
   font-family: "Poppins", sans-serif;
   color: #111827;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  margin: 0;
+  padding: 20px;
+  box-sizing: border-box;
+  flex-direction: column;
 }
 
 #container {
   max-width: 600px;
-  margin: 40px auto;
+  margin: 0 auto;
   padding: 20px;
   background: #fff;
   border-radius: 12px;
@@ -26,4 +34,8 @@ button {
 }
 button:hover {
   background: #1E40AF;
+}
+
+@media (max-width: 420px) {
+  #container { width: 100%; padding: 16px; }
 }
