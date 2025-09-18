@@ -225,6 +225,18 @@ let startTime = null;
 let activeQuestions = [];
 let countdown;
 
+let timerElement = document.getElementById("timer");
+if (!timerElement) {
+  timerElement = document.createElement("div");
+  timerElement.id = "timer";
+  timerElement.style.marginBottom = "8px";
+  const header = document.querySelector("h1");
+  if (header && header.parentNode) header.insertAdjacentElement("afterend", timerElement);
+  else container.prepend(timerElement);
+}
+timerElement.classList.remove("visible", "warning", "expired");
+
+
 function renderQuestion(index) {
   const q = activeQuestions[index];
 
@@ -232,15 +244,11 @@ function renderQuestion(index) {
   para.textContent = q.question;
   container.innerHTML = "";
 
-  let timerLeft = 15;
-  let timerElement = document.getElementById("timer");
-  if (!timerElement) {
-    timerElement = document.createElement("div");
-    timerElement.id = "timer";
-    timerElement.style.marginBottom = "8px";
-    container.prepend(timerElement);
-  }
+   let timerLeft = 15;
+  timerElement.classList.remove("warning", "expired");
+  timerElement.classList.add("visible");
   timerElement.textContent = timerLeft;
+
   clearInterval(countdown);
 
   const multiple = q.correct.length > 1;
@@ -334,12 +342,21 @@ function renderQuestion(index) {
     },
     { once: true }
   );
+
   countdown = setInterval(() => {
     timerLeft--;
     timerElement.textContent = timerLeft;
 
+    if (timerLeft <= 3 && timerLeft > 0) {
+      timerElement.classList.add("warning");
+    } else {
+      timerElement.classList.remove("warning");
+    }
+
     if (timerLeft <= 0) {
       clearInterval(countdown);
+      timerElement.classList.remove("warning");
+      timerElement.classList.add("expired");
       submitAnswer(true);
     }
   }, 1000);
@@ -369,6 +386,10 @@ function StartQuiz() {
 }
 
 function showResult(score, elapsedMs) {
+   clearInterval(countdown);
+  timerElement.classList.remove("visible", "warning");
+  timerElement.classList.add("expired");
+  timerElement.textContent = "";
   container.innerHTML = "";
 
   title.textContent = "Quiz terminé";
@@ -398,6 +419,7 @@ function showResult(score, elapsedMs) {
 }
 
 function restartQuiz() {
+  clearInterval(countdown);
   currentIndex = 0;
   answersSelected = [];
   startTime = null;
@@ -499,7 +521,3 @@ function choiceLevelName() {
 start.addEventListener("click", choiceLevelName);
 
 // when we click validate before check an answer the validate button brokes
-
-// function QuestionCountdown() {
-
-// }

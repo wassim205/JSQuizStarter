@@ -1,5 +1,5 @@
 body {
-  background-color: #F9FAFB;
+  background-color: #f9fafb;
   font-family: "Poppins", sans-serif;
   color: #111827;
   text-align: center;
@@ -15,27 +15,99 @@ body {
 
 #container {
   max-width: 600px;
-  margin: 0 auto;
+  margin: 12px auto 0;
   padding: 20px;
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+  text-align: left;
 }
 
 button {
-  background: #2563EB;
+  background: #2563eb;
   color: white;
   padding: 12px 20px;
   border: none;
   border-radius: 8px;
   font-size: 16px;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: background 0.2s, transform 0.12s;
+  display: inline-block;
 }
 button:hover {
-  background: #1E40AF;
+  background: #1e40af;
+  transform: translateY(-1px);
+}
+
+#timer {
+  display: none;
+}
+
+#timer.visible {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffffff 0%, #f3f4f6 100%);
+  box-shadow: 0 4px 10px rgba(2, 6, 23, 0.06);
+  font-weight: 700;
+  font-size: 18px;
+  color: #0f172a;
+  min-width: 72px;
+  justify-content: center;
+  transition: background 200ms, color 200ms, transform 180ms, box-shadow 200ms;
+  user-select: none;
+  margin-bottom: 12px;
+}
+
+#timer::before {
+  content: "⏱";
+  font-size: 18px;
+  display: inline-block;
+  transform: translateY(1px);
+  opacity: 0.95;
+}
+
+#timer.warning {
+  background: linear-gradient(90deg, #fff1f2 0%, #fee2e2 100%);
+  color: #7f1d1d;
+  box-shadow: 0 6px 18px rgba(124, 58, 237, 0.06);
+  transform: translateY(-2px);
+  animation: pulse 1s infinite ease-in-out;
+}
+
+#timer.expired {
+  background: linear-gradient(180deg, #f3f4f6 0%, #e5e7eb 100%);
+  color: #6b7280;
+  box-shadow: none;
+  transform: none;
+  animation: none;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 6px 18px rgba(124, 58, 237, 0.04);
+    transform: translateY(-1px) scale(1);
+  }
+  50% {
+    box-shadow: 0 10px 24px rgba(124, 58, 237, 0.08);
+    transform: translateY(-2px) scale(1.02);
+  }
+  100% {
+    box-shadow: 0 6px 18px rgba(124, 58, 237, 0.04);
+    transform: translateY(-1px) scale(1);
+  }
 }
 
 @media (max-width: 420px) {
-  #container { width: 100%; padding: 16px; }
+  #container {
+    width: 100%;
+    padding: 16px;
+  }
+  #timer.visible {
+    font-size: 16px;
+    padding: 6px 10px;
+    min-width: 64px;
+  }
 }
