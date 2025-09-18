@@ -408,12 +408,39 @@ function StartQuiz() {
 
   renderQuestion(currentIndex);
 }
-
+function saveAttemptToHistory(attempt) {
+  try {
+    const key = "quizHistory";
+    const history = JSON.parse(localStorage.getItem(key) || "[]");
+    history.push(attempt);
+    localStorage.setItem(key, JSON.stringify(history));
+  } catch (e) {
+    console.error("Failed to save quiz history:", e);
+  }
+}
 function showResult(score, elapsedMs) {
   clearInterval(countdown);
-  timerElement.classList.remove("visible", "warning");
-  timerElement.classList.add("expired");
-  timerElement.textContent = "";
+  if (typeof timerElement !== "undefined" && timerElement) {
+    timerElement.classList.remove("visible", "warning");
+    timerElement.classList.add("expired");
+    timerElement.textContent = "";
+  }
+
+  try {
+    const attempt = {
+      username: challenger || "anonymous",
+      datetimeISO: new Date().toISOString(),
+      score,
+      total: activeQuestions.length,
+      level: levelChoosed || null,
+      answers: userSelections || [],
+      elapsedMs,
+    };
+    saveAttemptToHistory(attempt);
+  } catch (err) {
+    console.error("Could not save attempt:", err);
+  }
+
   container.innerHTML = "";
 
   title.textContent = "Quiz terminé";
@@ -425,21 +452,74 @@ function showResult(score, elapsedMs) {
   else if (score === Math.ceil(activeQuestions.length / 2))
     message.innerText = "Could be better";
   else message.innerText = "VERY GOOD";
+  message.style.fontWeight = "600";
+  message.style.marginTop = "6px";
+  container.appendChild(message);
 
   const timeText = document.createElement("p");
   const seconds = (elapsedMs / 1000).toFixed(3);
   timeText.innerText = `You took: ${seconds}s`;
-
-  container.appendChild(message);
+  timeText.style.marginTop = "6px";
   container.appendChild(timeText);
+
+  const corrHeader = document.createElement("h3");
+  corrHeader.innerText = "Corrections";
+  corrHeader.style.marginTop = "12px";
+  corrHeader.style.fontSize = "16px";
+  corrHeader.style.fontWeight = "700";
+  container.appendChild(corrHeader);
+
+  const correctionsWrap = document.createElement("div");
+  correctionsWrap.style.marginTop = "8px";
+  correctionsWrap.style.borderTop = "1px solid #eee";
+
+  activeQuestions.forEach((q, i) => {
+    const qDiv = document.createElement("div");
+    qDiv.style.padding = "12px 6px";
+    qDiv.style.borderBottom = "1px solid #f2f4f7";
+    qDiv.style.background = i % 2 === 0 ? "transparent" : "#fbfdff";
+
+    const qTitle = document.createElement("div");
+    qTitle.innerHTML = `<strong>Q${i + 1}:</strong> ${q.question}`;
+    qTitle.style.marginBottom = "6px";
+    qDiv.appendChild(qTitle);
+
+    const userIdx = (userSelections && userSelections[i]) || [];
+    const userText =
+      userIdx.length > 0 ? userIdx.map((idx) => q.options[idx]).join(", ") : "(no selection)";
+    const userLine = document.createElement("div");
+    userLine.innerHTML = `<em>Your answer:</em> ${userText}`;
+    userLine.style.marginBottom = "4px";
+    qDiv.appendChild(userLine);
+
+    const correctIdx = (q.correct || []).map(Number);
+    const correctText = correctIdx.length > 0 ? correctIdx.map((idx) => q.options[idx]).join(", ") : "(none)";
+    const correctLine = document.createElement("div");
+    correctLine.innerHTML = `<em>Correct:</em> ${correctText}`;
+    correctLine.style.marginBottom = "6px";
+    qDiv.appendChild(correctLine);
+
+    const wasCorrect = !!answersSelected[i];
+    const okLine = document.createElement("div");
+    okLine.innerText = wasCorrect ? "✅ Correct" : "❌ Incorrect";
+    okLine.style.color = wasCorrect ? "#065f46" : "#991b1b";
+    okLine.style.fontWeight = "700";
+    qDiv.appendChild(okLine);
+
+    correctionsWrap.appendChild(qDiv);
+  });
+
+  container.appendChild(correctionsWrap);
 
   const restart = document.createElement("button");
   restart.type = "button";
   restart.id = "restart";
   restart.innerText = "Restart the quiz";
+  restart.style.marginTop = "14px";
   container.appendChild(restart);
 
   restart.addEventListener("click", restartQuiz);
+
 }
 
 function restartQuiz() {
