@@ -223,6 +223,20 @@ let currentIndex = 0;
 let answersSelected = [];
 let startTime = null;
 let activeQuestions = [];
+let countdown;
+let userSelections = [];
+
+let timerElement = document.getElementById("timer");
+if (!timerElement) {
+  timerElement = document.createElement("div");
+  timerElement.id = "timer";
+  timerElement.style.marginBottom = "8px";
+  const header = document.querySelector("h1");
+  if (header && header.parentNode)
+    header.insertAdjacentElement("afterend", timerElement);
+  else container.prepend(timerElement);
+}
+timerElement.classList.remove("visible", "warning", "expired");
 
 function renderQuestion(index) {
   const q = activeQuestions[index];
@@ -230,6 +244,13 @@ function renderQuestion(index) {
   title.textContent = `Question ${index + 1} / ${activeQuestions.length}`;
   para.textContent = q.question;
   container.innerHTML = "";
+
+  let timerLeft = 15;
+  timerElement.classList.remove("warning", "expired");
+  timerElement.classList.add("visible");
+  timerElement.textContent = timerLeft;
+
+  clearInterval(countdown);
 
   const multiple = q.correct.length > 1;
   q.options.forEach((optText, i) => {
@@ -255,60 +276,109 @@ function renderQuestion(index) {
   validateButton.innerText = "Validate";
   container.appendChild(validateButton);
 
-  validateButton.addEventListener(
-    "click",
-    function () {
-      if (multiple) {
-        const checkedNodes = container.querySelectorAll(
-          `input[name="q${index}"]:checked`
-        );
-        if (!checkedNodes || checkedNodes.length === 0) {
+  function captureSelection() {
+    const selectedNodes = container.querySelectorAll(
+      `input[name="q${index}"]:checked`
+    );
+    const selectedIndices =
+      selectedNodes && selectedNodes.length
+        ? Array.from(selectedNodes).map((n) => Number(n.value))
+        : [];
+    userSelections[index] = selectedIndices;
+    return selectedIndices;
+  }
+ function proceedAfterSelection(markedCorrect) {
+    // Called when we actually proceed (either user submitted valid selection or timeout)
+    clearInterval(countdown);
+    validateButton.disabled = true;
+    answersSelected[index] = !!markedCorrect;
+    // move to next
+    currentIndex++;
+    if (currentIndex < activeQuestions.length) {
+      renderQuestion(currentIndex);
+    } else {
+      const elapsed = Date.now() - startTime;
+      const correctCount = answersSelected.filter(Boolean).length;
+      showResult(correctCount, elapsed);
+    }
+  }
+   function submitAnswer(fromTimeout = false) {
+    // If already disabled (submission in progress), ignore
+    if (validateButton.disabled) return;
+
+    // capture whatever is currently selected (may be [])
+    const selected = captureSelection();
+
+    if (multiple) {
+      if (!selected || selected.length === 0) {
+        if (!fromTimeout) {
+          // user clicked Validate without selection -> show alert, keep timer running
           alert("Choose at least one answer please!");
           return;
-        }
-        // Array.from(x) converts a list x into real array
-        const selected = Array.from(checkedNodes)
-          .map((n) => Number(n.value))
-          .sort((a, b) => a - b);
-        const correct = q.correct
-          .slice()
-          .map(Number)
-          .sort((a, b) => a - b);
-
-        const isCorrect =
-          selected.length === correct.length &&
-          // every() returns true if every element from selected
-          //  passes the function inside of it
-          selected.every((v, i) => v === correct[i]);
-        // !!x turns x strictly to a boolean
-        answersSelected[index] = !!isCorrect;
-      } else {
-        const checked = container.querySelector(
-          `input[name="q${index}"]:checked`
-        );
-        if (!checked) {
-          alert("Choose an answer please!");
+        } else {
+          // timeout: mark incorrect and proceed
+          proceedAfterSelection(false);
           return;
         }
-        const selectedIndex = Number(checked.value);
-        answersSelected[index] = selectedIndex === Number(q.correct[0]);
-      }
-
-      currentIndex++;
-      if (currentIndex < activeQuestions.length) {
-        renderQuestion(currentIndex);
       } else {
-        const elapsed = Date.now() - startTime;
-        const correctCount = answersSelected.filter(Boolean).length;
-        showResult(correctCount, elapsed);
+        // user selected -> compute correctness then proceed
+        const sortedSelected = selected.slice().sort((a,b)=>a-b);
+        const correct = q.correct.slice().map(Number).sort((a,b)=>a-b);
+
+        const isCorrect =
+          sortedSelected.length === correct.length &&
+          sortedSelected.every((v, i) => v === correct[i]);
+
+        proceedAfterSelection(!!isCorrect);
+        return;
       }
-    },
-    // runs the event listener only once
-    { once: true }
-  );
+    } else {
+      // single-answer question
+      if (!selected || selected.length === 0) {
+        if (!fromTimeout) {
+          alert("Choose an answer please!");
+          return;
+        } else {
+          proceedAfterSelection(false);
+          return;
+        }
+      } else {
+        const selectedIndex = Number(selected[0]);
+        const isCorrect = selectedIndex === Number(q.correct[0]);
+        proceedAfterSelection(isCorrect);
+        return;
+      }
+    }
+  }
+
+  validateButton.addEventListener("click", function () {
+    submitAnswer(false);
+  });
+setTimeout(() => {
+    const firstInput = container.querySelector(`input[name="q${index}"]`);
+    if (firstInput) firstInput.focus();
+  }, 0);
+  countdown = setInterval(() => {
+    timerLeft--;
+    timerElement.textContent = timerLeft;
+
+    if (timerLeft <= 3 && timerLeft > 0) {
+      timerElement.classList.add("warning");
+    } else {
+      timerElement.classList.remove("warning");
+    }
+
+    if (timerLeft <= 0) {
+      clearInterval(countdown);
+      timerElement.classList.remove("warning");
+      timerElement.classList.add("expired");
+      submitAnswer(true);
+    }
+  }, 1000);
 }
 
 function StartQuiz() {
+  // find selected level set
   let found = null;
   for (let i = 0; i < QUESTIONS.length; i++) {
     if (QUESTIONS[i].level === levelChoosed) {
@@ -321,17 +391,56 @@ function StartQuiz() {
     return;
   }
 
+  // defensive: ensure at least 10 questions
+  if (!found.questions || found.questions.length < 10) {
+    alert("This theme must have at least 10 questions.");
+    return;
+  }
+
   activeQuestions = found.questions.slice();
 
+  // reset per-quiz state
   start.style.display = "none";
   currentIndex = 0;
   answersSelected = [];
+  userSelections = []; // reset saved selections
   startTime = Date.now();
 
   renderQuestion(currentIndex);
 }
-
+function saveAttemptToHistory(attempt) {
+  try {
+    const key = "quizHistory";
+    const history = JSON.parse(localStorage.getItem(key) || "[]");
+    history.push(attempt);
+    localStorage.setItem(key, JSON.stringify(history));
+  } catch (e) {
+    console.error("Failed to save quiz history:", e);
+  }
+}
 function showResult(score, elapsedMs) {
+  clearInterval(countdown);
+  if (typeof timerElement !== "undefined" && timerElement) {
+    timerElement.classList.remove("visible", "warning");
+    timerElement.classList.add("expired");
+    timerElement.textContent = "";
+  }
+
+  try {
+    const attempt = {
+      username: challenger || "anonymous",
+      datetimeISO: new Date().toISOString(),
+      score,
+      total: activeQuestions.length,
+      level: levelChoosed || null,
+      answers: userSelections || [],
+      elapsedMs,
+    };
+    saveAttemptToHistory(attempt);
+  } catch (err) {
+    console.error("Could not save attempt:", err);
+  }
+
   container.innerHTML = "";
 
   title.textContent = "Quiz terminé";
@@ -343,24 +452,78 @@ function showResult(score, elapsedMs) {
   else if (score === Math.ceil(activeQuestions.length / 2))
     message.innerText = "Could be better";
   else message.innerText = "VERY GOOD";
+  message.style.fontWeight = "600";
+  message.style.marginTop = "6px";
+  container.appendChild(message);
 
   const timeText = document.createElement("p");
   const seconds = (elapsedMs / 1000).toFixed(3);
   timeText.innerText = `You took: ${seconds}s`;
-
-  container.appendChild(message);
+  timeText.style.marginTop = "6px";
   container.appendChild(timeText);
+
+  const corrHeader = document.createElement("h3");
+  corrHeader.innerText = "Corrections";
+  corrHeader.style.marginTop = "12px";
+  corrHeader.style.fontSize = "16px";
+  corrHeader.style.fontWeight = "700";
+  container.appendChild(corrHeader);
+
+  const correctionsWrap = document.createElement("div");
+  correctionsWrap.style.marginTop = "8px";
+  correctionsWrap.style.borderTop = "1px solid #eee";
+
+  activeQuestions.forEach((q, i) => {
+    const qDiv = document.createElement("div");
+    qDiv.style.padding = "12px 6px";
+    qDiv.style.borderBottom = "1px solid #f2f4f7";
+    qDiv.style.background = i % 2 === 0 ? "transparent" : "#fbfdff";
+
+    const qTitle = document.createElement("div");
+    qTitle.innerHTML = `<strong>Q${i + 1}:</strong> ${q.question}`;
+    qTitle.style.marginBottom = "6px";
+    qDiv.appendChild(qTitle);
+
+    const userIdx = (userSelections && userSelections[i]) || [];
+    const userText =
+      userIdx.length > 0 ? userIdx.map((idx) => q.options[idx]).join(", ") : "(no selection)";
+    const userLine = document.createElement("div");
+    userLine.innerHTML = `<em>Your answer:</em> ${userText}`;
+    userLine.style.marginBottom = "4px";
+    qDiv.appendChild(userLine);
+
+    const correctIdx = (q.correct || []).map(Number);
+    const correctText = correctIdx.length > 0 ? correctIdx.map((idx) => q.options[idx]).join(", ") : "(none)";
+    const correctLine = document.createElement("div");
+    correctLine.innerHTML = `<em>Correct:</em> ${correctText}`;
+    correctLine.style.marginBottom = "6px";
+    qDiv.appendChild(correctLine);
+
+    const wasCorrect = !!answersSelected[i];
+    const okLine = document.createElement("div");
+    okLine.innerText = wasCorrect ? "✅ Correct" : "❌ Incorrect";
+    okLine.style.color = wasCorrect ? "#065f46" : "#991b1b";
+    okLine.style.fontWeight = "700";
+    qDiv.appendChild(okLine);
+
+    correctionsWrap.appendChild(qDiv);
+  });
+
+  container.appendChild(correctionsWrap);
 
   const restart = document.createElement("button");
   restart.type = "button";
   restart.id = "restart";
   restart.innerText = "Restart the quiz";
+  restart.style.marginTop = "14px";
   container.appendChild(restart);
 
   restart.addEventListener("click", restartQuiz);
+
 }
 
 function restartQuiz() {
+  clearInterval(countdown);
   currentIndex = 0;
   answersSelected = [];
   startTime = null;
@@ -375,88 +538,134 @@ function restartQuiz() {
 function choiceLevelName() {
   title.textContent = "JSQuizStarter";
 
-  const storedName = localStorage.getItem("username");
-  const askingForName = !storedName;
+  const storedName = localStorage.getItem("username") || "";
 
-  para.textContent = askingForName
-    ? "Please choose name and a level before starting"
-    : `Welcome back, ${storedName}. Please choose a level to start.`;
+  para.textContent =
+    "Please enter a username and choose a level before starting.";
 
   container.innerHTML = "";
   start.style.display = "none";
 
-  let usernameInput = null;
-  if (askingForName) {
-    const nameLabel = document.createElement("label");
-    nameLabel.textContent = "Username";
-    usernameInput = document.createElement("input");
-    usernameInput.type = "text";
-    usernameInput.name = "username";
-    container.appendChild(nameLabel);
-    container.appendChild(usernameInput);
-  } else {
-    const note = document.createElement("div");
-    note.textContent = `Using saved name: ${storedName}`;
-    note.style.marginBottom = "8px";
-    container.appendChild(note);
-  }
+  const nameLabel = document.createElement("label");
+  nameLabel.textContent = "Username";
+  nameLabel.style.display = "block";
+  nameLabel.style.marginBottom = "6px";
 
-  const levels = ["easy", "medium", "hard"];
-  levels.forEach((level) => {
-    const choiceInput = document.createElement("input");
-    const choiceLabel = document.createElement("label");
+  const usernameInput = document.createElement("input");
+  usernameInput.type = "text";
+  usernameInput.name = "username";
+  usernameInput.placeholder = "Your name";
+  usernameInput.value = storedName;
+  usernameInput.style.padding = "8px";
+  usernameInput.style.borderRadius = "6px";
+  usernameInput.style.border = "1px solid #ddd";
+  usernameInput.style.display = "block";
+  usernameInput.style.width = "100%";
+  usernameInput.style.boxSizing = "border-box";
+  usernameInput.style.marginBottom = "12px";
 
-    choiceInput.id = `level-${level}`;
-    choiceInput.type = "radio";
-    choiceInput.name = "level";
-    choiceInput.value = level;
+  container.appendChild(nameLabel);
+  container.appendChild(usernameInput);
 
-    choiceLabel.htmlFor = choiceInput.id;
-    choiceLabel.textContent = level;
+  const levels = [...new Set(QUESTIONS.map((s) => s.level))];
 
-    container.appendChild(choiceInput);
-    container.appendChild(choiceLabel);
+  const selectLabel = document.createElement("label");
+  selectLabel.textContent = "Choose level";
+  selectLabel.style.display = "block";
+  selectLabel.style.margin = "8px 0 6px 0";
+
+  const select = document.createElement("select");
+  select.style.padding = "8px";
+  select.style.borderRadius = "6px";
+  select.style.border = "1px solid #ddd";
+  select.style.display = "block";
+  select.style.width = "100%";
+  select.style.boxSizing = "border-box";
+
+  const defaultOption = document.createElement("option");
+  defaultOption.value = "";
+  defaultOption.textContent = "Select level";
+  select.appendChild(defaultOption);
+
+  levels.forEach((l) => {
+    const opt = document.createElement("option");
+    opt.value = l;
+    opt.textContent = l;
+    select.appendChild(opt);
   });
 
-  const validateButton = document.createElement("button");
-  validateButton.type = "button";
-  validateButton.id = "validate-button";
-  validateButton.innerText = "Validate";
-  container.appendChild(validateButton);
+  container.appendChild(selectLabel);
+  container.appendChild(select);
 
-  validateButton.addEventListener("click", function () {
-    const checkedLevelInput = container.querySelector(
-      'input[name="level"]:checked'
-    );
+  const controls = document.createElement("div");
+  controls.style.marginTop = "14px";
+  controls.style.display = "flex";
+  controls.style.gap = "8px";
 
-    const username = askingForName
-      ? usernameInput.value
-        ? usernameInput.value.trim()
-        : ""
-      : storedName;
+  const btnStart = document.createElement("button");
+  btnStart.type = "button";
+  btnStart.innerText = "Start";
+  btnStart.style.flex = "1";
 
-    if (askingForName && !username) {
+  const btnCancel = document.createElement("button");
+  btnCancel.type = "button";
+  btnCancel.innerText = "Cancel";
+  btnCancel.className = "secondary";
+  btnCancel.style.flex = "1";
+
+  controls.appendChild(btnStart);
+  controls.appendChild(btnCancel);
+  container.appendChild(controls);
+
+  function cleanup() {
+    btnStart.removeEventListener("click", startHandler);
+    btnCancel.removeEventListener("click", cancelHandler);
+    usernameInput.removeEventListener("keydown", keyHandler);
+    select.removeEventListener("keydown", keyHandler);
+  }
+
+  function startHandler() {
+    const username = usernameInput.value ? usernameInput.value.trim() : "";
+    const selectedLevel = select.value;
+
+    if (!username) {
       alert("Please enter your name before starting.");
-      if (usernameInput) usernameInput.focus();
+      usernameInput.focus();
       return;
     }
-
-    if (!checkedLevelInput) {
+    if (!selectedLevel) {
       alert("Choose a level please!");
+      select.focus();
       return;
     }
 
     challenger = username;
-    levelChoosed = checkedLevelInput.value;
+    levelChoosed = selectedLevel;
 
-    if (askingForName) {
-      localStorage.setItem("username", challenger);
-    }
-
+    localStorage.setItem("username", challenger);
     localStorage.setItem("level", levelChoosed);
 
+    cleanup();
     StartQuiz();
-  });
+  }
+
+  function cancelHandler() {
+    cleanup();
+    restartQuiz();
+  }
+
+  function keyHandler(e) {
+    if (e.key === "Enter") {
+      startHandler();
+    }
+  }
+
+  btnStart.addEventListener("click", startHandler);
+  btnCancel.addEventListener("click", cancelHandler);
+  usernameInput.addEventListener("keydown", keyHandler);
+  select.addEventListener("keydown", keyHandler);
+
+  usernameInput.focus();
 }
 
 start.addEventListener("click", choiceLevelName);
