@@ -223,6 +223,7 @@ let currentIndex = 0;
 let answersSelected = [];
 let startTime = null;
 let activeQuestions = [];
+let countdown;
 
 function renderQuestion(index) {
   const q = activeQuestions[index];
@@ -230,6 +231,17 @@ function renderQuestion(index) {
   title.textContent = `Question ${index + 1} / ${activeQuestions.length}`;
   para.textContent = q.question;
   container.innerHTML = "";
+
+  let timerLeft = 15;
+  let timerElement = document.getElementById("timer");
+  if (!timerElement) {
+    timerElement = document.createElement("div");
+    timerElement.id = "timer";
+    timerElement.style.marginBottom = "8px";
+    container.prepend(timerElement);
+  }
+  timerElement.textContent = timerLeft;
+  clearInterval(countdown);
 
   const multiple = q.correct.length > 1;
   q.options.forEach((optText, i) => {
@@ -255,18 +267,25 @@ function renderQuestion(index) {
   validateButton.innerText = "Validate";
   container.appendChild(validateButton);
 
-  validateButton.addEventListener(
-    "click",
-    function () {
-      if (multiple) {
-        const checkedNodes = container.querySelectorAll(
-          `input[name="q${index}"]:checked`
-        );
-        if (!checkedNodes || checkedNodes.length === 0) {
+  function submitAnswer(fromTimeout = false) {
+    clearInterval(countdown);
+
+    if (validateButton.disabled) return;
+    validateButton.disabled = true;
+
+    if (multiple) {
+      const checkedNodes = container.querySelectorAll(
+        `input[name="q${index}"]:checked`
+      );
+      if (!checkedNodes || checkedNodes.length === 0) {
+        if (!fromTimeout) {
           alert("Choose at least one answer please!");
+          validateButton.disabled = false;
           return;
+        } else {
+          answersSelected[index] = false;
         }
-        // Array.from(x) converts a list x into real array
+      } else {
         const selected = Array.from(checkedNodes)
           .map((n) => Number(n.value))
           .sort((a, b) => a - b);
@@ -277,35 +296,53 @@ function renderQuestion(index) {
 
         const isCorrect =
           selected.length === correct.length &&
-          // every() returns true if every element from selected
-          //  passes the function inside of it
           selected.every((v, i) => v === correct[i]);
-        // !!x turns x strictly to a boolean
         answersSelected[index] = !!isCorrect;
-      } else {
-        const checked = container.querySelector(
-          `input[name="q${index}"]:checked`
-        );
-        if (!checked) {
+      }
+    } else {
+      const checked = container.querySelector(
+        `input[name="q${index}"]:checked`
+      );
+      if (!checked) {
+        if (!fromTimeout) {
           alert("Choose an answer please!");
+          validateButton.disabled = false;
           return;
+        } else {
+          answersSelected[index] = false;
         }
+      } else {
         const selectedIndex = Number(checked.value);
         answersSelected[index] = selectedIndex === Number(q.correct[0]);
       }
+    }
 
-      currentIndex++;
-      if (currentIndex < activeQuestions.length) {
-        renderQuestion(currentIndex);
-      } else {
-        const elapsed = Date.now() - startTime;
-        const correctCount = answersSelected.filter(Boolean).length;
-        showResult(correctCount, elapsed);
-      }
+    currentIndex++;
+    if (currentIndex < activeQuestions.length) {
+      renderQuestion(currentIndex);
+    } else {
+      const elapsed = Date.now() - startTime;
+      const correctCount = answersSelected.filter(Boolean).length;
+      showResult(correctCount, elapsed);
+    }
+  }
+
+  validateButton.addEventListener(
+    "click",
+    function () {
+      submitAnswer(false);
     },
-    // runs the event listener only once
     { once: true }
   );
+  countdown = setInterval(() => {
+    timerLeft--;
+    timerElement.textContent = timerLeft;
+
+    if (timerLeft <= 0) {
+      clearInterval(countdown);
+      submitAnswer(true);
+    }
+  }, 1000);
 }
 
 function StartQuiz() {
@@ -460,3 +497,9 @@ function choiceLevelName() {
 }
 
 start.addEventListener("click", choiceLevelName);
+
+// when we click validate before check an answer the validate button brokes
+
+// function QuestionCountdown() {
+
+// }
