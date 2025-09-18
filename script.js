@@ -224,6 +224,7 @@ let answersSelected = [];
 let startTime = null;
 let activeQuestions = [];
 let countdown;
+let userSelections = [];
 
 let timerElement = document.getElementById("timer");
 if (!timerElement) {
@@ -275,10 +276,23 @@ function renderQuestion(index) {
   validateButton.innerText = "Validate";
   container.appendChild(validateButton);
 
-  function proceedAfterSelection(markedCorrect) {
+  function captureSelection() {
+    const selectedNodes = container.querySelectorAll(
+      `input[name="q${index}"]:checked`
+    );
+    const selectedIndices =
+      selectedNodes && selectedNodes.length
+        ? Array.from(selectedNodes).map((n) => Number(n.value))
+        : [];
+    userSelections[index] = selectedIndices;
+    return selectedIndices;
+  }
+ function proceedAfterSelection(markedCorrect) {
+    // Called when we actually proceed (either user submitted valid selection or timeout)
     clearInterval(countdown);
     validateButton.disabled = true;
     answersSelected[index] = !!markedCorrect;
+    // move to next
     currentIndex++;
     if (currentIndex < activeQuestions.length) {
       renderQuestion(currentIndex);
@@ -288,41 +302,39 @@ function renderQuestion(index) {
       showResult(correctCount, elapsed);
     }
   }
-  function submitAnswer(fromTimeout = false) {
+   function submitAnswer(fromTimeout = false) {
+    // If already disabled (submission in progress), ignore
     if (validateButton.disabled) return;
 
+    // capture whatever is currently selected (may be [])
+    const selected = captureSelection();
+
     if (multiple) {
-      const checkedNodes = container.querySelectorAll(
-        `input[name="q${index}"]:checked`
-      );
-      if (!checkedNodes || checkedNodes.length === 0) {
+      if (!selected || selected.length === 0) {
         if (!fromTimeout) {
+          // user clicked Validate without selection -> show alert, keep timer running
           alert("Choose at least one answer please!");
           return;
         } else {
+          // timeout: mark incorrect and proceed
           proceedAfterSelection(false);
           return;
         }
       } else {
-        const selected = Array.from(checkedNodes)
-          .map((n) => Number(n.value))
-          .sort((a, b) => a - b);
-        const correct = q.correct
-          .slice()
-          .map(Number)
-          .sort((a, b) => a - b);
+        // user selected -> compute correctness then proceed
+        const sortedSelected = selected.slice().sort((a,b)=>a-b);
+        const correct = q.correct.slice().map(Number).sort((a,b)=>a-b);
 
         const isCorrect =
-          selected.length === correct.length &&
-          selected.every((v, i) => v === correct[i]);
+          sortedSelected.length === correct.length &&
+          sortedSelected.every((v, i) => v === correct[i]);
+
         proceedAfterSelection(!!isCorrect);
         return;
       }
     } else {
-      const checked = container.querySelector(
-        `input[name="q${index}"]:checked`
-      );
-      if (!checked) {
+      // single-answer question
+      if (!selected || selected.length === 0) {
         if (!fromTimeout) {
           alert("Choose an answer please!");
           return;
@@ -331,7 +343,7 @@ function renderQuestion(index) {
           return;
         }
       } else {
-        const selectedIndex = Number(checked.value);
+        const selectedIndex = Number(selected[0]);
         const isCorrect = selectedIndex === Number(q.correct[0]);
         proceedAfterSelection(isCorrect);
         return;
@@ -342,7 +354,10 @@ function renderQuestion(index) {
   validateButton.addEventListener("click", function () {
     submitAnswer(false);
   });
-
+setTimeout(() => {
+    const firstInput = container.querySelector(`input[name="q${index}"]`);
+    if (firstInput) firstInput.focus();
+  }, 0);
   countdown = setInterval(() => {
     timerLeft--;
     timerElement.textContent = timerLeft;
@@ -363,6 +378,7 @@ function renderQuestion(index) {
 }
 
 function StartQuiz() {
+  // find selected level set
   let found = null;
   for (let i = 0; i < QUESTIONS.length; i++) {
     if (QUESTIONS[i].level === levelChoosed) {
@@ -375,11 +391,19 @@ function StartQuiz() {
     return;
   }
 
+  // defensive: ensure at least 10 questions
+  if (!found.questions || found.questions.length < 10) {
+    alert("This theme must have at least 10 questions.");
+    return;
+  }
+
   activeQuestions = found.questions.slice();
 
+  // reset per-quiz state
   start.style.display = "none";
   currentIndex = 0;
   answersSelected = [];
+  userSelections = []; // reset saved selections
   startTime = Date.now();
 
   renderQuestion(currentIndex);
