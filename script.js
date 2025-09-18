@@ -56,7 +56,7 @@ const QUESTIONS = [
         question:
           "Parmi ces éléments, lesquels sont des balises inline en HTML ?",
         options: ["<div>", "<span>", "<strong>"],
-        correct: [1, 2], // multiple correct
+        correct: [1, 2],
       },
     ],
   },
@@ -94,7 +94,7 @@ const QUESTIONS = [
         question:
           "Quel(s) mot(s)-clé(s) servent à déclarer une variable en JS moderne ?",
         options: ["var", "let", "const"],
-        correct: [1, 2], // multiple correct
+        correct: [1, 2],
       },
       {
         question: "Quelle instruction arrête une boucle immédiatement ?",
@@ -122,7 +122,7 @@ const QUESTIONS = [
       {
         question: "Parmi ces méthodes Array, lesquelles existent en JS ?",
         options: ["map()", "collect()", "filter()"],
-        correct: [0, 2], // multiple correct
+        correct: [0, 2],
       },
     ],
   },
@@ -183,7 +183,7 @@ const QUESTIONS = [
           "Utiliser uniquement images pour tout le contenu",
           "Utiliser des labels pour les champs de formulaire",
         ],
-        correct: [0, 2], // multiple correct
+        correct: [0, 2],
       },
       {
         question: "Quelle est la différence principale entre `==` et `===` ?",
@@ -202,7 +202,7 @@ const QUESTIONS = [
           "Une promise peut être rejetée une seule fois",
           "Une promise est immuable une fois résolue ou rejetée",
         ],
-        correct: [1, 2], // multiple correct
+        correct: [1, 2],
       },
       {
         question: "Quel est le résultat de `typeof null` ?",
