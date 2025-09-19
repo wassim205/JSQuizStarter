@@ -535,7 +535,7 @@ function showResult(score, elapsedMs) {
   restart.type = "button";
   restart.id = "restart";
   restart.innerText = "Restart the quiz";
-  restart.style.marginTop = "14px";
+  restart.style.margin = "14px";
   container.appendChild(restart);
 
   const importPDF = document.createElement("button");
@@ -547,6 +547,7 @@ function showResult(score, elapsedMs) {
   importPDF.addEventListener("click", async function () {
     restart.style.display = "none";
     importPDF.style.display = "none";
+    importPDF.style.margin = "14px"
     const wholePage = document.body;
     try {
       const opt = {
