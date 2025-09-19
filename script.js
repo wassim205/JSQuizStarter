@@ -465,34 +465,57 @@ function showResult(score, elapsedMs) {
   correctionsWrap.style.marginTop = "8px";
   correctionsWrap.style.borderTop = "1px solid #eee";
 
-  activeQuestions.forEach((q, i) => {
+   activeQuestions.forEach((q, i) => {
     const qDiv = document.createElement("div");
     qDiv.style.padding = "12px 6px";
     qDiv.style.borderBottom = "1px solid #f2f4f7";
     qDiv.style.background = i % 2 === 0 ? "transparent" : "#fbfdff";
 
     const qTitle = document.createElement("div");
-    qTitle.innerHTML = `<strong>Q${i + 1}:</strong> ${q.question}`;
+    const strong = document.createElement("strong");
+    strong.textContent = `Q${i + 1}: `;
+    qTitle.appendChild(strong);
+    const qTextSpan = document.createElement("span");
+    qTextSpan.textContent = q.question;
+    qTitle.appendChild(qTextSpan);
     qTitle.style.marginBottom = "6px";
     qDiv.appendChild(qTitle);
 
     const userIdx = (userSelections && userSelections[i]) || [];
     const userText =
       userIdx.length > 0
-        ? userIdx.map((idx) => q.options[idx]).join(", ")
+        ? userIdx
+            .map((idx) =>
+              typeof q.options[idx] !== "undefined" ? q.options[idx] : "(invalid selection)"
+            )
+            .join(", ")
         : "(no selection)";
     const userLine = document.createElement("div");
-    userLine.innerHTML = `<em>Your answer:</em> ${userText}`;
+    const userEm = document.createElement("em");
+    userEm.textContent = "Your answer: ";
+    const userSpan = document.createElement("span");
+    userSpan.textContent = userText;
+    userLine.appendChild(userEm);
+    userLine.appendChild(userSpan);
     userLine.style.marginBottom = "4px";
     qDiv.appendChild(userLine);
-
+  
     const correctIdx = (q.correct || []).map(Number);
     const correctText =
       correctIdx.length > 0
-        ? correctIdx.map((idx) => q.options[idx]).join(", ")
+        ? correctIdx
+            .map((idx) =>
+              typeof q.options[idx] !== "undefined" ? q.options[idx] : "(invalid index)"
+            )
+            .join(", ")
         : "(none)";
     const correctLine = document.createElement("div");
-    correctLine.innerHTML = `<em>Correct:</em> ${correctText}`;
+    const corrEm = document.createElement("em");
+    corrEm.textContent = "Correct: ";
+    const corrSpan = document.createElement("span");
+    corrSpan.textContent = correctText;
+    correctLine.appendChild(corrEm);
+    correctLine.appendChild(corrSpan);
     correctLine.style.marginBottom = "6px";
     qDiv.appendChild(correctLine);
 
