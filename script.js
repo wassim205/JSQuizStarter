@@ -287,12 +287,10 @@ function renderQuestion(index) {
     userSelections[index] = selectedIndices;
     return selectedIndices;
   }
- function proceedAfterSelection(markedCorrect) {
-    // Called when we actually proceed (either user submitted valid selection or timeout)
+  function proceedAfterSelection(markedCorrect) {
     clearInterval(countdown);
     validateButton.disabled = true;
     answersSelected[index] = !!markedCorrect;
-    // move to next
     currentIndex++;
     if (currentIndex < activeQuestions.length) {
       renderQuestion(currentIndex);
@@ -302,28 +300,26 @@ function renderQuestion(index) {
       showResult(correctCount, elapsed);
     }
   }
-   function submitAnswer(fromTimeout = false) {
-    // If already disabled (submission in progress), ignore
+  function submitAnswer(fromTimeout = false) {
     if (validateButton.disabled) return;
 
-    // capture whatever is currently selected (may be [])
     const selected = captureSelection();
 
     if (multiple) {
       if (!selected || selected.length === 0) {
         if (!fromTimeout) {
-          // user clicked Validate without selection -> show alert, keep timer running
           alert("Choose at least one answer please!");
           return;
         } else {
-          // timeout: mark incorrect and proceed
           proceedAfterSelection(false);
           return;
         }
       } else {
-        // user selected -> compute correctness then proceed
-        const sortedSelected = selected.slice().sort((a,b)=>a-b);
-        const correct = q.correct.slice().map(Number).sort((a,b)=>a-b);
+        const sortedSelected = selected.slice().sort((a, b) => a - b);
+        const correct = q.correct
+          .slice()
+          .map(Number)
+          .sort((a, b) => a - b);
 
         const isCorrect =
           sortedSelected.length === correct.length &&
@@ -333,7 +329,6 @@ function renderQuestion(index) {
         return;
       }
     } else {
-      // single-answer question
       if (!selected || selected.length === 0) {
         if (!fromTimeout) {
           alert("Choose an answer please!");
@@ -354,7 +349,7 @@ function renderQuestion(index) {
   validateButton.addEventListener("click", function () {
     submitAnswer(false);
   });
-setTimeout(() => {
+  setTimeout(() => {
     const firstInput = container.querySelector(`input[name="q${index}"]`);
     if (firstInput) firstInput.focus();
   }, 0);
@@ -378,7 +373,6 @@ setTimeout(() => {
 }
 
 function StartQuiz() {
-  // find selected level set
   let found = null;
   for (let i = 0; i < QUESTIONS.length; i++) {
     if (QUESTIONS[i].level === levelChoosed) {
@@ -391,7 +385,6 @@ function StartQuiz() {
     return;
   }
 
-  // defensive: ensure at least 10 questions
   if (!found.questions || found.questions.length < 10) {
     alert("This theme must have at least 10 questions.");
     return;
@@ -399,11 +392,10 @@ function StartQuiz() {
 
   activeQuestions = found.questions.slice();
 
-  // reset per-quiz state
   start.style.display = "none";
   currentIndex = 0;
   answersSelected = [];
-  userSelections = []; // reset saved selections
+  userSelections = [];
   startTime = Date.now();
 
   renderQuestion(currentIndex);
@@ -473,29 +465,57 @@ function showResult(score, elapsedMs) {
   correctionsWrap.style.marginTop = "8px";
   correctionsWrap.style.borderTop = "1px solid #eee";
 
-  activeQuestions.forEach((q, i) => {
+   activeQuestions.forEach((q, i) => {
     const qDiv = document.createElement("div");
     qDiv.style.padding = "12px 6px";
     qDiv.style.borderBottom = "1px solid #f2f4f7";
     qDiv.style.background = i % 2 === 0 ? "transparent" : "#fbfdff";
 
     const qTitle = document.createElement("div");
-    qTitle.innerHTML = `<strong>Q${i + 1}:</strong> ${q.question}`;
+    const strong = document.createElement("strong");
+    strong.textContent = `Q${i + 1}: `;
+    qTitle.appendChild(strong);
+    const qTextSpan = document.createElement("span");
+    qTextSpan.textContent = q.question;
+    qTitle.appendChild(qTextSpan);
     qTitle.style.marginBottom = "6px";
     qDiv.appendChild(qTitle);
 
     const userIdx = (userSelections && userSelections[i]) || [];
     const userText =
-      userIdx.length > 0 ? userIdx.map((idx) => q.options[idx]).join(", ") : "(no selection)";
+      userIdx.length > 0
+        ? userIdx
+            .map((idx) =>
+              typeof q.options[idx] !== "undefined" ? q.options[idx] : "(invalid selection)"
+            )
+            .join(", ")
+        : "(no selection)";
     const userLine = document.createElement("div");
-    userLine.innerHTML = `<em>Your answer:</em> ${userText}`;
+    const userEm = document.createElement("em");
+    userEm.textContent = "Your answer: ";
+    const userSpan = document.createElement("span");
+    userSpan.textContent = userText;
+    userLine.appendChild(userEm);
+    userLine.appendChild(userSpan);
     userLine.style.marginBottom = "4px";
     qDiv.appendChild(userLine);
-
+  
     const correctIdx = (q.correct || []).map(Number);
-    const correctText = correctIdx.length > 0 ? correctIdx.map((idx) => q.options[idx]).join(", ") : "(none)";
+    const correctText =
+      correctIdx.length > 0
+        ? correctIdx
+            .map((idx) =>
+              typeof q.options[idx] !== "undefined" ? q.options[idx] : "(invalid index)"
+            )
+            .join(", ")
+        : "(none)";
     const correctLine = document.createElement("div");
-    correctLine.innerHTML = `<em>Correct:</em> ${correctText}`;
+    const corrEm = document.createElement("em");
+    corrEm.textContent = "Correct: ";
+    const corrSpan = document.createElement("span");
+    corrSpan.textContent = correctText;
+    correctLine.appendChild(corrEm);
+    correctLine.appendChild(corrSpan);
     correctLine.style.marginBottom = "6px";
     qDiv.appendChild(correctLine);
 
@@ -515,11 +535,43 @@ function showResult(score, elapsedMs) {
   restart.type = "button";
   restart.id = "restart";
   restart.innerText = "Restart the quiz";
-  restart.style.marginTop = "14px";
+  restart.style.margin = "14px";
   container.appendChild(restart);
 
-  restart.addEventListener("click", restartQuiz);
+  const importPDF = document.createElement("button");
+  importPDF.type = "button";
+  importPDF.id = "import";
+  importPDF.innerText = "Export as PDF";
+  container.appendChild(importPDF);
+  
+  importPDF.addEventListener("click", async function () {
+    restart.style.display = "none";
+    importPDF.style.display = "none";
+    importPDF.style.margin = "14px"
+    const wholePage = document.body;
+    try {
+      const opt = {
+        margin: 1,
+        filename: "myGameHistory.pdf",
+        image: {type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'A4', orientation: 'portrait' }
+      };
+      
+      const result = html2pdf().set(opt).from(wholePage).save();
+      await result;
+     
+    } catch (e) {
+      console.log("pdf generation failed: ", e);
+      
+    } finally {
 
+      restart.style.display = "block";
+    }
+    
+  });
+
+  restart.addEventListener("click", restartQuiz);
 }
 
 function restartQuiz() {
