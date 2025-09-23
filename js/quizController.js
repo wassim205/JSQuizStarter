@@ -143,6 +143,7 @@ function finishQuiz() {
     
     localStorage.removeItem('username');
     localStorage.removeItem('level');
+    localStorage.removeItem('theme');
     Storage.saveAttempt(attempt);
     
   } catch (e) {
