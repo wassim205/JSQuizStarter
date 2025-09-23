@@ -1,0 +1,38 @@
+{
+  "easy": [
+    { "id": 1, "question": "Which are primitive types in JS?", "options": ["String", "Number", "Object"], "correct": [0,1] },
+    { "id": 2, "question": "Which operator is strict equality?", "options": ["==", "===", "!="], "correct": [1] },
+    { "id": 3, "question": "Which declares block-scoped variables?", "options": ["var", "let", "const"], "correct": [1,2] },
+    { "id": 4, "question": "Which array methods return a new array?", "options": ["map()", "forEach()", "filter()"], "correct": [0,2] },
+    { "id": 5, "question": "What does typeof null return?", "options": ["'object'", "'null'", "'undefined'"], "correct": [0] },
+    { "id": 6, "question": "Which syntax defines an arrow function?", "options": ["function(){ }", "() => {}", "=> {}"], "correct": [1] },
+    { "id": 7, "question": "Which methods exist on console?", "options": ["log", "error", "warn"], "correct": [0,1,2] },
+    { "id": 8, "question": "Which create an empty object?", "options": ["{}", "new Object()", "Object.create(null)"], "correct": [0,1,2] },
+    { "id": 9, "question": "Which loop can iterate arrays easily?", "options": ["for", "for...of", "for...in"], "correct": [0,1] },
+    { "id": 10, "question": "Which statements are used to handle exceptions?", "options": ["try/catch", "if/else", "throw"], "correct": [0,2] }
+  ],
+  "medium": [
+    { "id": 11, "question": "Which are Promise states?", "options": ["pending", "fulfilled", "settled"], "correct": [0,1] },
+    { "id": 12, "question": "Which are valid ways to create functions?", "options": ["Function declaration", "Function expression", "Arrow function"], "correct": [0,1,2] },
+    { "id": 13, "question": "Which methods are used to transform arrays?", "options": ["map", "reduce", "filter"], "correct": [0,1,2] },
+    { "id": 14, "question": "Which describe event delegation?", "options": ["Attach listener to parent", "Attach listener to each child", "Use stopPropagation"], "correct": [0] },
+    { "id": 15, "question": "Which methods read JSON from fetch response?", "options": ["res.text()", "res.json()", "res.blob()"], "correct": [1] },
+    { "id": 16, "question": "Which are ES6 features?", "options": ["let/const", "arrow functions", "class syntax"], "correct": [0,1,2] },
+    { "id": 17, "question": "Which are valid module syntaxes?", "options": ["import", "export", "require"], "correct": [0,1] },
+    { "id": 18, "question": "Which is true about closures?", "options": ["Function keeps access to lexical scope", "They cause memory leaks always", "They enable data privacy"], "correct": [0,2] },
+    { "id": 19, "question": "Which DOM APIs exist?", "options": ["querySelector", "getElementById", "getElementsByClassName"], "correct": [0,1,2] },
+    { "id": 20, "question": "Which are ways to handle async flow?", "options": ["callbacks", "promises", "async/await"], "correct": [0,1,2] }
+  ],
+  "hard": [
+    { "id": 21, "question": "Which describe prototypal inheritance?", "options": ["Objects inherit from objects", "Classes compile to prototypes", "No inheritance in JS"], "correct": [0,1] },
+    { "id": 22, "question": "Which are true about event loop?", "options": ["Macro-tasks and micro-tasks", "setTimeout callbacks are micro-tasks", "Promises micro-tasks run before next render"], "correct": [0,2] },
+    { "id": 23, "question": "Which use strict mode does?", "options": ["Disallow undeclared variables", "Make code faster", "Disable closures"], "correct": [0] },
+    { "id": 24, "question": "Which are valid patterns to avoid global scope pollution?", "options": ["IIFE", "Modules", "Adding many globals"], "correct": [0,1] },
+    { "id": 25, "question": "Which describe hoisting?", "options": ["Function declarations hoist", "let/const are hoisted but not initialized", "var is block-scoped"], "correct": [0,1] },
+    { "id": 26, "question": "Which are ways to shallow-copy objects?", "options": ["Object.assign({}, obj)", "structuredClone(obj)", "{ ...obj }"], "correct": [0,2] },
+    { "id": 27, "question": "Which describe tail-call optimization?", "options": ["Not widely supported in browsers", "Always enabled", "Optimizes some recursive calls"], "correct": [0,2] },
+    { "id": 28, "question": "Which are true about WeakMap/WeakSet?", "options": ["Keys are weakly held", "They prevent memory leaks by GC of keys", "They iterate like Map"], "correct": [0,1] },
+    { "id": 29, "question": "Which methods measure performance in the browser?", "options": ["performance.now()", "console.time()", "Date.now()"], "correct": [0,1,2] },
+    { "id": 30, "question": "Which are valid ways to memoize a pure function?", "options": ["Use a Map cache", "Use closure caching", "Always compute again"], "correct": [0,1] }
+  ]
+}

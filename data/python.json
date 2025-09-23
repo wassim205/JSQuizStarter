@@ -1,0 +1,38 @@
+{
+  "easy": [
+    { "id": 1, "question": "Which types are immutable?", "options": ["list", "tuple", "str", "dict"], "correct": [1,2] },
+    { "id": 2, "question": "Which statement defines a function?", "options": ["def", "function", "lambda"], "correct": [0,2] },
+    { "id": 3, "question": "Which statements are for error handling?", "options": ["try", "except", "finally"], "correct": [0,1,2] },
+    { "id": 4, "question": "Which loop constructs exist?", "options": ["for", "while", "repeat"], "correct": [0,1] },
+    { "id": 5, "question": "Which are valid collections?", "options": ["list", "set", "tuple", "array"], "correct": [0,1,2] },
+    { "id": 6, "question": "Which is used to create virtual environments?", "options": ["python -m venv env", "pip install venv", "virtualenv env"], "correct": [0,2] },
+    { "id": 7, "question": "Which built-ins convert to string?", "options": ["str()", "repr()", "toString()"], "correct": [0,1] },
+    { "id": 8, "question": "Which methods read file contents?", "options": ["open('f').read()", "with open('f') as f: data = f.read()", "File.read('f')"], "correct": [0,1] },
+    { "id": 9, "question": "Which are package managers?", "options": ["pip", "conda", "npm"], "correct": [0,1] },
+    { "id": 10, "question": "Which syntax builds a list comprehension?", "options": ["[x for x in iterable]", "(x for x in iterable)", "{x for x in iterable}"], "correct": [0] }
+  ],
+  "medium": [
+    { "id": 11, "question": "Which are Python scoping rules?", "options": ["LEGB (Local, Enclosing, Global, Builtins)", "Only global and local", "Class-level only"], "correct": [0] },
+    { "id": 12, "question": "Which are common concurrency libs?", "options": ["threading", "multiprocessing", "asyncio"], "correct": [0,1,2] },
+    { "id": 13, "question": "Which are data serialization formats supported?", "options": ["json", "pickle", "yaml"], "correct": [0,1,2] },
+    { "id": 14, "question": "Which built-in function applies a function to each item?", "options": ["map()", "apply()", "forEach()"], "correct": [0] },
+    { "id": 15, "question": "Which describe Python generators?", "options": ["Use yield", "Return entire list", "Are lazy iterators"], "correct": [0,2] },
+    { "id": 16, "question": "Which tools help dependency management?", "options": ["pip", "poetry", "pipenv"], "correct": [0,1,2] },
+    { "id": 17, "question": "Which methods exist on dict?", "options": ["items()", "keys()", "values()"], "correct": [0,1,2] },
+    { "id": 18, "question": "Which are ways to run tests?", "options": ["unittest", "pytest", "nose"], "correct": [0,1] },
+    { "id": 19, "question": "Which are common web frameworks?", "options": ["Django", "Flask", "Express"], "correct": [0,1] },
+    { "id": 20, "question": "Which are Python numeric types?", "options": ["int", "float", "complex"], "correct": [0,1,2] }
+  ],
+  "hard": [
+    { "id": 21, "question": "Which describe GIL (Global Interpreter Lock)?", "options": ["Prevents multi-threaded CPU-bound parallelism in CPython", "Allows full parallelism", "Only affects I/O"], "correct": [0] },
+    { "id": 22, "question": "Which are ways to achieve parallel CPU work?", "options": ["multiprocessing", "C extensions", "threading"], "correct": [0,1] },
+    { "id": 23, "question": "Which are coroutine keywords?", "options": ["async", "await", "yield"], "correct": [0,1] },
+    { "id": 24, "question": "Which are true about descriptors?", "options": ["Implement __get__/__set__", "Are used for properties", "Only for functions"], "correct": [0,1] },
+    { "id": 25, "question": "Which are typing module features?", "options": ["List[int]", "Optional[str]", "Any"], "correct": [0,1,2] },
+    { "id": 26, "question": "Which describe context managers?", "options": ["Use __enter__/__exit__", "Allow resource cleanup", "Are always generators"], "correct": [0,1] },
+    { "id": 27, "question": "Which are valid async libs for web?", "options": ["aiohttp", "uvicorn", "gunicorn"], "correct": [0,1] },
+    { "id": 28, "question": "Which describe memoryview?", "options": ["Provides buffer interface", "Copies data always", "Useful for binary protocols"], "correct": [0,2] },
+    { "id": 29, "question": "Which are valid ways to serialize dataclasses?", "options": ["asdict()", "json.dumps(dataclass)", "dataclasses.asdict()"], "correct": [0,2] },
+    { "id": 30, "question": "Which are true about Python packaging?", "options": ["pyproject.toml standardizes builds", "setup.py is deprecated", "wheel is a binary distribution format"], "correct": [0,2] }
+  ]
+}

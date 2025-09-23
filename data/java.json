@@ -1,0 +1,38 @@
+{
+  "easy": [
+    { "id": 1, "question": "Which are Java primitive types?", "options": ["int", "String", "boolean", "List"], "correct": [0,2] },
+    { "id": 2, "question": "Which keyword prevents reassignment of a variable?", "options": ["final", "static", "const"], "correct": [0] },
+    { "id": 3, "question": "Which is the Java entry point signature?", "options": ["public static void main(String[] args)", "public void start()", "static main()"], "correct": [0] },
+    { "id": 4, "question": "Which collection interfaces exist in Java?", "options": ["List", "Map", "Set", "Array"], "correct": [0,1,2] },
+    { "id": 5, "question": "Which keyword is used to inherit a class?", "options": ["extends", "implements", "inherits"], "correct": [0] },
+    { "id": 6, "question": "Which access modifier allows access from anywhere?", "options": ["public", "private", "protected"], "correct": [0] },
+    { "id": 7, "question": "Which loop constructs are valid in Java?", "options": ["for", "while", "do-while"], "correct": [0,1,2] },
+    { "id": 8, "question": "What does JVM stand for?", "options": ["Java Virtual Machine", "Java Version Manager", "Java Visual Map"], "correct": [0] },
+    { "id": 9, "question": "Which type holds decimal numbers?", "options": ["float", "int", "char"], "correct": [0] },
+    { "id": 10, "question": "Which is used for exceptions?", "options": ["try/catch", "if/else", "switch"], "correct": [0] }
+  ],
+  "medium": [
+    { "id": 11, "question": "Which are checked exceptions?", "options": ["IOException", "NullPointerException", "SQLException"], "correct": [0,2] },
+    { "id": 12, "question": "Which are valid Java generics syntax examples?", "options": ["List<String>", "Map<K,V>", "Array<int>"], "correct": [0,1] },
+    { "id": 13, "question": "Which modifier prevents subclassing?", "options": ["final", "abstract", "static"], "correct": [0] },
+    { "id": 14, "question": "Which methods belong to Object class?", "options": ["toString()", "equals()", "print()"], "correct": [0,1] },
+    { "id": 15, "question": "Which statements about threads are true?", "options": ["Runnable is an interface", "Thread extends Runnable", "synchronized helps concurrency"], "correct": [0,2] },
+    { "id": 16, "question": "Which keyword declares an interface implementation?", "options": ["implements", "extends", "imports"], "correct": [0] },
+    { "id": 17, "question": "Which class loader loads system classes?", "options": ["Bootstrap", "Application", "User"], "correct": [0] },
+    { "id": 18, "question": "Which are JDK tools?", "options": ["javac", "jar", "javadoc"], "correct": [0,1,2] },
+    { "id": 19, "question": "Which collection preserves insertion order?", "options": ["LinkedHashMap", "HashMap", "TreeMap"], "correct": [0] },
+    { "id": 20, "question": "Which are functional interfaces in Java 8?", "options": ["Runnable", "Comparator", "Function"], "correct": [1,2] }
+  ],
+  "hard": [
+    { "id": 21, "question": "Which describes volatile keyword?", "options": ["Ensures visibility across threads", "Makes variable immutable", "Allocates on heap"], "correct": [0] },
+    { "id": 22, "question": "Which are JMM concerns?", "options": ["Reordering", "Visibility", "Deadlock"], "correct": [0,1,2] },
+    { "id": 23, "question": "Which are stream terminal operations?", "options": ["collect()", "map()", "forEach()"], "correct": [0,2] },
+    { "id": 24, "question": "Which exception is thrown for class cast problems?", "options": ["ClassCastException", "CastException", "TypeError"], "correct": [0] },
+    { "id": 25, "question": "Which are valid module-info descriptors?", "options": ["module x { requires y; }", "module x exports y;", "module x uses y;"], "correct": [0,1,2] },
+    { "id": 26, "question": "Which describe method overloading vs overriding?", "options": ["Different signatures = overloading", "Subclass change = overriding", "Same signature different class = overloading"], "correct": [0,1] },
+    { "id": 27, "question": "Which are reasons to prefer immutable objects?", "options": ["Thread-safety", "Easier caching", "Lower memory"], "correct": [0,1] },
+    { "id": 28, "question": "Which data structure gives O(1) average lookup?", "options": ["HashMap", "ArrayList", "LinkedList"], "correct": [0] },
+    { "id": 29, "question": "Which are features added in Java 9+", "options": ["Modules", "Var (local)", "Switch expressions"], "correct": [0] },
+    { "id": 30, "question": "Which describe CompletableFuture?", "options": ["Asynchronous computation", "Synchronous only", "Supports chaining"], "correct": [0,2] }
+  ]
+}

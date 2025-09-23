@@ -111,3 +111,16 @@ button:hover {
     min-width: 64px;
   }
 }
+
+
+
+.theme-grid { display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; }
+.theme-card {
+  width:120px; height:120px; border-radius:8px; display:flex;flex-direction:column;
+  align-items:center; justify-content:center; padding:8px; cursor:pointer;
+  border:1px solid #ddd; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.03);
+}
+.theme-card:hover { transform:translateY(-4px); box-shadow:0 6px 18px rgba(0,0,0,0.08); }
+.theme-icon { width:48px; height:48px; margin-bottom:8px; display:block; }
+.theme-label { font-size:14px; text-align:center; }
+.selected-theme { outline:3px solid #3b82f6; }

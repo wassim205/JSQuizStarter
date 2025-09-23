@@ -1,0 +1,38 @@
+{
+  "easy": [
+    { "id": 1, "question": "Which tag creates a hyperlink?", "options": ["<a>", "<link>", "<nav>"], "correct": [0] },
+    { "id": 2, "question": "Which tag is semantic for the document header?", "options": ["<head>", "<header>", "<top>"], "correct": [1] },
+    { "id": 3, "question": "Which attribute is used for image alt text?", "options": ["alt", "title", "src"], "correct": [0] },
+    { "id": 4, "question": "Which tag marks a paragraph?", "options": ["<p>", "<div>", "<section>"], "correct": [0] },
+    { "id": 5, "question": "Which element creates an ordered list?", "options": ["<ol>", "<ul>", "<li>"], "correct": [0] },
+    { "id": 6, "question": "Which tags are inline elements?", "options": ["<span>", "<strong>", "<section>"], "correct": [0,1] },
+    { "id": 7, "question": "Which attribute contains a URL for an <a> tag?", "options": ["href", "src", "link"], "correct": [0] },
+    { "id": 8, "question": "Which tag is used for page title in the browser tab?", "options": ["<title>", "<h1>", "<meta>"], "correct": [0] },
+    { "id": 9, "question": "Which element groups form fields?", "options": ["<fieldset>", "<form>", "<layout>"], "correct": [0] },
+    { "id": 10, "question": "Which attributes are valid on <img>?", "options": ["src", "alt", "href"], "correct": [0,1] }
+  ],
+  "medium": [
+    { "id": 11, "question": "Which tags are part of document metadata?", "options": ["<meta>", "<link>", "<script>", "<nav>"], "correct": [0,1,2] },
+    { "id": 12, "question": "Which attribute sets an element's language?", "options": ["lang", "locale", "hreflang"], "correct": [0] },
+    { "id": 13, "question": "Which input types are valid HTML5 types?", "options": ["color", "date", "datetime-local", "slider"], "correct": [0,1,2] },
+    { "id": 14, "question": "Which are valid global attributes?", "options": ["id", "class", "onclick", "style"], "correct": [0,1,3] },
+    { "id": 15, "question": "Which role attribute is used for landmark navigation?", "options": ["navigation", "main", "banner"], "correct": [0] },
+    { "id": 16, "question": "What does <figure> usually contain?", "options": ["image with caption", "site header", "form controls"], "correct": [0] },
+    { "id": 17, "question": "Which tags can contain block-level content?", "options": ["<section>", "<article>", "<span>"], "correct": [0,1] },
+    { "id": 18, "question": "Which attribute is used for responsive image sources?", "options": ["srcset", "sizes", "data-src"], "correct": [0,1] },
+    { "id": 19, "question": "Which is true about ARIA?", "options": ["Improves accessibility", "Replaces semantic HTML", "Should be used when native semantics missing"], "correct": [0,2] },
+    { "id": 20, "question": "Which tags are used for tables?", "options": ["<table>", "<tr>", "<td>", "<list>"], "correct": [0,1,2] }
+  ],
+  "hard": [
+    { "id": 21, "question": "Which <meta> directive helps prevent mobile zooming?", "options": ["viewport user-scalable=no", "charset=utf-8", "robots=noindex"], "correct": [0] },
+    { "id": 22, "question": "Which attributes help with SEO and link relationships?", "options": ["rel", "hreflang", "ping"], "correct": [0,1] },
+    { "id": 23, "question": "Which input attribute helps auto-complete forms?", "options": ["autocomplete", "autofocus", "autoplay"], "correct": [0] },
+    { "id": 24, "question": "Which tags are allowed inside <head>?", "options": ["<meta>", "<link>", "<script>", "<footer>"], "correct": [0,1,2] },
+    { "id": 25, "question": "Which is true about HTML templating <template>?", "options": ["Not rendered until cloned", "Always visible", "Replaces body content"], "correct": [0] },
+    { "id": 26, "question": "Which techniques improve accessibility?", "options": ["Proper headings", "Alt attributes", "Skip links", "Using only images for content"], "correct": [0,1,2] },
+    { "id": 27, "question": "When should <button type='submit'> be used?", "options": ["To submit form", "To navigate pages", "To style text"], "correct": [0] },
+    { "id": 28, "question": "Which is correct usage of <picture> for responsive images?", "options": ["Provide multiple sources with media queries", "Put only a single img", "Use picture only for SVG"], "correct": [0] },
+    { "id": 29, "question": "Which attributes exist on <a> and affect security?", "options": ["rel='noopener noreferrer'", "target='_blank'", "data-secure"], "correct": [0,1] },
+    { "id": 30, "question": "Which is true about document semantics?", "options": ["Semantic tags provide meaning to browsers and assistive tech", "They are only for styling", "They slow down pages"], "correct": [0] }
+  ]
+}
