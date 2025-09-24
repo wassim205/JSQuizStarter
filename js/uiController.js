@@ -9,7 +9,8 @@ if (!timerElement) {
   timerElement = createEl("div", { id: "timer" });
   timerElement.style.marginBottom = "8px";
   const header = document.querySelector("h1");
-  if (header && header.parentNode) header.insertAdjacentElement("afterend", timerElement);
+  if (header && header.parentNode)
+    header.insertAdjacentElement("afterend", timerElement);
   else if (container) container.prepend(timerElement);
 }
 timerElement.classList.remove("visible", "warning", "expired");
@@ -18,7 +19,6 @@ export function updateTimerText(text) {
   if (!timerElement) return;
   timerElement.textContent = text;
 }
-
 
 export function setTimerState(state) {
   if (!timerElement) return;
@@ -36,22 +36,26 @@ export function clearContainer() {
   if (container) container.innerHTML = "";
 }
 
-
-export function showChoiceLevelName({ questionsSource = [], onStart, selectedTheme = null }) {
+export function showChoiceLevelName({
+  questionsSource = [],
+  onStart,
+  selectedTheme = null,
+}) {
   if (!container) return;
 
   const startBtn = document.getElementById("start-quiz");
   if (startBtn) startBtn.style.display = "none";
 
   title.textContent = "JSQuizStarter";
-  para.textContent = "Please enter a username and choose a level before starting.";
+  para.textContent =
+    "Please enter a username and choose a level before starting.";
   container.innerHTML = "";
   const storedName = localStorage.getItem("username") || "";
 
   if (selectedTheme) {
-    const themeNote = createEl('div', { text: `Theme: ${selectedTheme}` });
-    themeNote.style.fontWeight = '700';
-    themeNote.style.marginBottom = '8px';
+    const themeNote = createEl("div", { text: `Theme: ${selectedTheme}` });
+    themeNote.style.fontWeight = "700";
+    themeNote.style.marginBottom = "8px";
     container.appendChild(themeNote);
   }
 
@@ -59,7 +63,11 @@ export function showChoiceLevelName({ questionsSource = [], onStart, selectedThe
   nameLabel.style.display = "block";
   nameLabel.style.marginBottom = "6px";
 
-  const usernameInput = createEl("input", { type: "text", name: "username", placeholder: "Your name" });
+  const usernameInput = createEl("input", {
+    type: "text",
+    name: "username",
+    placeholder: "Your name",
+  });
   usernameInput.value = storedName;
   usernameInput.style.padding = "8px";
   usernameInput.style.borderRadius = "6px";
@@ -72,7 +80,7 @@ export function showChoiceLevelName({ questionsSource = [], onStart, selectedThe
   container.appendChild(nameLabel);
   container.appendChild(usernameInput);
 
-   const levels = ["easy", "medium", "hard"];
+  const levels = ["easy", "medium", "hard"];
 
   const selectLabel = createEl("label", { text: "Choose level" });
   selectLabel.style.display = "block";
@@ -134,7 +142,8 @@ export function showChoiceLevelName({ questionsSource = [], onStart, selectedThe
       return;
     }
     cleanup();
-    if (typeof onStart === "function") onStart({ username, level: selectedLevel, theme: selectedTheme });
+    if (typeof onStart === "function")
+      onStart({ username, level: selectedLevel, theme: selectedTheme });
   }
 
   function cancelHandler() {
@@ -173,18 +182,29 @@ export function renderQuestionUI({ q, index, total }) {
       name: `q${index}`,
       value: i,
     });
-    const label = createEl("label", { for: `q${index}_opt${i}`, text: optText });
+    const label = createEl("label", {
+      for: `q${index}_opt${i}`,
+      text: optText,
+    });
     container.appendChild(input);
     container.appendChild(label);
     container.appendChild(createEl("br"));
   });
 
-  const validateButton = createEl("button", { type: "button", id: "validate-button", text: "Validate" });
+  const validateButton = createEl("button", {
+    type: "button",
+    id: "validate-button",
+    text: "Validate",
+  });
   container.appendChild(validateButton);
 
   function getSelectedIndices() {
-    const selectedNodes = container.querySelectorAll(`input[name="q${index}"]:checked`);
-    return selectedNodes && selectedNodes.length ? Array.from(selectedNodes).map((n) => Number(n.value)) : [];
+    const selectedNodes = container.querySelectorAll(
+      `input[name="q${index}"]:checked`
+    );
+    return selectedNodes && selectedNodes.length
+      ? Array.from(selectedNodes).map((n) => Number(n.value))
+      : [];
   }
 
   function focusFirstInput() {
@@ -197,19 +217,34 @@ export function renderQuestionUI({ q, index, total }) {
   return { validateButton, getSelectedIndices, focusFirstInput };
 }
 
-
-export function showResultUI({ score = 0, total = 0, userSelections = [], activeQuestions = [], elapsedMs = 0, onRestart }) {
+export function showResultUI({
+  score = 0,
+  total = 0,
+  userSelections = [],
+  activeQuestions = [],
+  elapsedMs = 0,
+  onRestart,
+}) {
   setTimerVisible(false);
   clearContainer();
   title.textContent = "Quiz terminé";
   para.textContent = `Score: ${score} / ${total}`;
 
-  const message = createEl("p", { text: score < Math.ceil(total / 2) ? "Revise your knowledge" : score === Math.ceil(total / 2) ? "Could be better" : "VERY GOOD" });
+  const message = createEl("p", {
+    text:
+      score < Math.ceil(total / 2)
+        ? "Revise your knowledge"
+        : score === Math.ceil(total / 2)
+        ? "Could be better"
+        : "VERY GOOD",
+  });
   message.style.fontWeight = "600";
   message.style.marginTop = "6px";
   container.appendChild(message);
 
-  const timeText = createEl("p", { text: `You took: ${formatSeconds(elapsedMs)}` });
+  const timeText = createEl("p", {
+    text: `You took: ${formatSeconds(elapsedMs)}`,
+  });
   timeText.style.marginTop = "6px";
   container.appendChild(timeText);
 
@@ -238,7 +273,16 @@ export function showResultUI({ score = 0, total = 0, userSelections = [], active
     qDiv.appendChild(qTitle);
 
     const userIdx = (userSelections && userSelections[i]) || [];
-    const userText = userIdx.length > 0 ? userIdx.map((idx) => (typeof q.options[idx] !== "undefined" ? q.options[idx] : "(invalid selection)")).join(", ") : "(no selection)";
+    const userText =
+      userIdx.length > 0
+        ? userIdx
+            .map((idx) =>
+              typeof q.options[idx] !== "undefined"
+                ? q.options[idx]
+                : "(invalid selection)"
+            )
+            .join(", ")
+        : "(no selection)";
     const userLine = createEl("div");
     userLine.appendChild(createEl("em", { text: "Your answer: " }));
     userLine.appendChild(createEl("span", { text: userText }));
@@ -246,15 +290,26 @@ export function showResultUI({ score = 0, total = 0, userSelections = [], active
     qDiv.appendChild(userLine);
 
     const correctIdx = (q.correct || []).map(Number);
-    const correctText = correctIdx.length > 0 ? correctIdx.map((idx) => (typeof q.options[idx] !== "undefined" ? q.options[idx] : "(invalid index)")).join(", ") : "(none)";
+    const correctText =
+      correctIdx.length > 0
+        ? correctIdx
+            .map((idx) =>
+              typeof q.options[idx] !== "undefined"
+                ? q.options[idx]
+                : "(invalid index)"
+            )
+            .join(", ")
+        : "(none)";
     const correctLine = createEl("div");
     correctLine.appendChild(createEl("em", { text: "Correct: " }));
     correctLine.appendChild(createEl("span", { text: correctText }));
     correctLine.style.marginBottom = "6px";
     qDiv.appendChild(correctLine);
 
-    const wasCorrect = !!(q._wasCorrect);
-    const okLine = createEl("div", { text: wasCorrect ? "✅ Correct" : "❌ Incorrect" });
+    const wasCorrect = !!q._wasCorrect;
+    const okLine = createEl("div", {
+      text: wasCorrect ? "✅ Correct" : "❌ Incorrect",
+    });
     okLine.style.color = wasCorrect ? "#065f46" : "#991b1b";
     okLine.style.fontWeight = "700";
     qDiv.appendChild(okLine);
@@ -266,9 +321,17 @@ export function showResultUI({ score = 0, total = 0, userSelections = [], active
 
   const controls = createEl("div");
   controls.style.marginTop = "12px";
-  const restart = createEl("button", { type: "button", id: "restart", text: "Restart the quiz" });
+  const restart = createEl("button", {
+    type: "button",
+    id: "restart",
+    text: "Restart the quiz",
+  });
   restart.style.margin = "14px";
-  const exportPDF = createEl("button", { type: "button", id: "export-pdf", text: "Export as PDF" });
+  const exportPDF = createEl("button", {
+    type: "button",
+    id: "export-pdf",
+    text: "Export as PDF",
+  });
   controls.appendChild(restart);
   controls.appendChild(exportPDF);
   container.appendChild(controls);
@@ -298,10 +361,9 @@ export function showResultUI({ score = 0, total = 0, userSelections = [], active
   });
 }
 
-
 export function showThemeSelection({ themes = [], onThemeSelect }) {
   if (!container) return;
-   const startBtn = document.getElementById("start-quiz");
+  const startBtn = document.getElementById("start-quiz");
   if (startBtn) startBtn.style.display = "none";
   title.textContent = "Choose a theme";
   para.textContent = "Pick a theme to start the quiz.";
@@ -310,7 +372,7 @@ export function showThemeSelection({ themes = [], onThemeSelect }) {
   const grid = createEl("div");
   grid.className = "theme-grid";
 
-  themes.forEach(t => {
+  themes.forEach((t) => {
     const card = createEl("div", { class: "theme-card", "data-theme": t.id });
     const img = t.img
       ? createEl("img", { src: t.img, alt: t.label, class: "theme-icon" })
@@ -320,7 +382,9 @@ export function showThemeSelection({ themes = [], onThemeSelect }) {
     card.appendChild(label);
 
     card.addEventListener("click", () => {
-      grid.querySelectorAll(".theme-card").forEach(n => n.classList.remove("selected-theme"));
+      grid
+        .querySelectorAll(".theme-card")
+        .forEach((n) => n.classList.remove("selected-theme"));
       card.classList.add("selected-theme");
       setTimeout(() => {
         if (typeof onThemeSelect === "function") onThemeSelect(t.id);
@@ -331,4 +395,117 @@ export function showThemeSelection({ themes = [], onThemeSelect }) {
   });
 
   container.appendChild(grid);
+}
+
+let feedbackTimeout = null;
+
+export function visualFeedback(
+  questionIndex,
+  selectedIndices = [],
+  correctIndices = [],
+  onComplete
+) {
+  const DELAY_MS = 3000;
+
+  if (feedbackTimeout) {
+    clearTimeout(feedbackTimeout);
+    feedbackTimeout = null;
+  }
+
+  selectedIndices = (
+    Array.isArray(selectedIndices) ? selectedIndices.map(Number) : []
+  ).slice();
+  correctIndices = (
+    Array.isArray(correctIndices) ? correctIndices.map(Number) : []
+  ).slice();
+
+  const validateButton = document.getElementById("validate-button");
+  if (validateButton) {
+    validateButton.disabled = true;
+    validateButton.style.display = "none";
+  }
+  const inputs = Array.from(
+    document.querySelectorAll(`input[name="q${questionIndex}"]`)
+  );
+  inputs.forEach((i) => {
+    try {
+      i.disabled = true;
+    } catch (e) {}
+  });
+
+  const prevStatus = document.querySelector(".feedback-status");
+  if (prevStatus && prevStatus.parentNode)
+    prevStatus.parentNode.removeChild(prevStatus);
+
+  const getLabel = (i) =>
+    document.querySelector(`label[for="q${questionIndex}_opt${i}"]`);
+
+  selectedIndices.forEach((i) => {
+    const label = getLabel(i);
+    if (!label) return;
+    if (correctIndices.includes(i)) label.classList.add("selected-correct");
+    else label.classList.add("selected-wrong");
+  });
+
+  const unselectedCorrect = correctIndices.filter(
+    (i) => !selectedIndices.includes(i)
+  );
+  unselectedCorrect.forEach((i) => {
+    const label = getLabel(i);
+    if (!label) return;
+    label.classList.add("correct-reveal");
+  });
+
+  const status = document.createElement("div");
+  status.className = "feedback-status";
+  const selSorted = [...selectedIndices].sort((a, b) => a - b);
+  const corrSorted = [...correctIndices].sort((a, b) => a - b);
+  const fullyCorrect =
+    selSorted.length === corrSorted.length &&
+    selSorted.every((v, i) => v === corrSorted[i]);
+
+  if (fullyCorrect) {
+    status.textContent = "✅ Correct.";
+  } else {
+    const correctCount = selectedIndices.filter((i) =>
+      correctIndices.includes(i)
+    ).length;
+    status.textContent = `❌ Incorrect (${correctCount} / ${correctIndices.length})`;
+  }
+
+  const para = document.querySelector("p");
+  if (para && para.parentNode)
+    para.parentNode.insertBefore(status, para.nextSibling);
+  else container.prepend(status);
+
+  feedbackTimeout = setTimeout(() => {
+    selectedIndices.forEach((i) => {
+      const label = getLabel(i);
+      if (label) label.classList.remove("selected-correct", "selected-wrong");
+    });
+    unselectedCorrect.forEach((i) => {
+      const label = getLabel(i);
+      if (label) label.classList.remove("correct-reveal");
+    });
+
+    const s = document.querySelector(".feedback-status");
+    if (s && s.parentNode) s.parentNode.removeChild(s);
+
+    feedbackTimeout = null;
+
+    if (typeof onComplete === "function") {
+      try {
+        onComplete();
+      } catch (e) {
+        console.error("visualFeedback onComplete error:", e);
+      }
+    } else {
+      inputs.forEach((i) => {
+        try {
+          i.disabled = false;
+        } catch (e) {}
+      });
+      if (validateButton) validateButton.disabled = false;
+    }
+  }, DELAY_MS);
 }

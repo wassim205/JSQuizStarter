@@ -124,3 +124,37 @@ button:hover {
 .theme-icon { width:48px; height:48px; margin-bottom:8px; display:block; }
 .theme-label { font-size:14px; text-align:center; }
 .selected-theme { outline:3px solid #3b82f6; }
+
+
+
+label.selected-correct {
+  background-color: #d1fae5;
+  border: 1px solid #10b981;
+  color: #064e3b;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+/* selected and wrong (user picked a wrong option) */
+label.selected-wrong {
+  background-color: #fee2e2;
+  border: 1px solid #ef4444;
+  color: #7f1d1d;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+/* correct but not selected (revealed to user) */
+label.correct-reveal {
+  background-color: transparent;
+  border: 2px dashed #34d399; /* dashed green border to differentiate */
+  color: #065f46;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+/* short status line under the question */
+.feedback-status {
+  margin-top: 8px;
+  font-weight: 700;
+}

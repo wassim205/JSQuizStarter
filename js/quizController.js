@@ -9,7 +9,6 @@ let userSelections = [];
 let startTime = null;
 let countdown = null;
 export function startQuiz(questionsArray = [], meta = {}) {
-
   if (!Array.isArray(questionsArray) || questionsArray.length === 0) {
     alert("No questions to start.");
     return;
@@ -74,47 +73,52 @@ export function renderQuestion(index) {
       finishQuiz();
     }
   }
-
   function submitAnswer(fromTimeout = false) {
     if (validateButton.disabled) return;
 
     const selected = captureSelection();
     const multiple = (q.correct || []).length > 1;
+    const correct = (q.correct || []).map(Number).sort((a, b) => a - b);
 
-    if (multiple) {
-      if (!selected || selected.length === 0) {
-        if (!fromTimeout) {
-          alert("Choose at least one answer please!");
-          return;
-        } else {
-          proceedAfterSelection(false);
-          return;
-        }
+    if (!selected || selected.length === 0) {
+      if (!fromTimeout) {
+        alert(
+          multiple
+            ? "Choose at least one answer please!"
+            : "Choose an answer please!"
+        );
+        return;
       }
-      const sortedSelected = selected.slice().sort((a, b) => a - b);
-      const correct = (q.correct || [])
-        .slice()
-        .map(Number)
-        .sort((a, b) => a - b);
-      const isCorrect =
+      clearInterval(countdown);
+      validateButton.disabled = true;
+      Array.from(
+        container.querySelectorAll(`input[name="q${currentIndex}"]`)
+      ).forEach((i) => (i.disabled = true));
+      UI.visualFeedback(currentIndex, [], correct, () => {
+        proceedAfterSelection(false);
+      });
+      return;
+    }
+
+    let isCorrect = false;
+    if (multiple) {
+      const sortedSelected = selected.map(Number).sort((a, b) => a - b);
+      isCorrect =
         sortedSelected.length === correct.length &&
         sortedSelected.every((v, i) => v === correct[i]);
-      proceedAfterSelection(!!isCorrect);
     } else {
-      if (!selected || selected.length === 0) {
-        if (!fromTimeout) {
-          alert("Choose an answer please!");
-          return;
-        } else {
-          proceedAfterSelection(false);
-          return;
-        }
-      } else {
-        const selectedIndex = Number(selected[0]);
-        const isCorrect = selectedIndex === Number((q.correct || [])[0]);
-        proceedAfterSelection(isCorrect);
-      }
+      isCorrect = Number(selected[0]) === correct[0];
     }
+
+    clearInterval(countdown);
+    validateButton.disabled = true;
+    Array.from(
+      container.querySelectorAll(`input[name="q${currentIndex}"]`)
+    ).forEach((i) => (i.disabled = true));
+
+    UI.visualFeedback(currentIndex, selected.map(Number), correct, () => {
+      proceedAfterSelection(!!isCorrect);
+    });
   }
 
   validateButton.addEventListener("click", function () {
@@ -132,7 +136,7 @@ function finishQuiz() {
   const attempt = {
     username: Storage.getUsername() || "anonymous",
     date: new Date().toISOString(),
-    score: correctCount + '/10',
+    score: correctCount + "/10",
     level: Storage.getLevel() || null,
     theme: Storage.getTheme() || null,
     answers: userSelections,
@@ -140,12 +144,10 @@ function finishQuiz() {
   };
 
   try {
-    
-    localStorage.removeItem('username');
-    localStorage.removeItem('level');
-    localStorage.removeItem('theme');
+    localStorage.removeItem("username");
+    localStorage.removeItem("level");
+    localStorage.removeItem("theme");
     Storage.saveAttempt(attempt);
-    
   } catch (e) {
     console.error("Could not save attempt:", e);
   }
