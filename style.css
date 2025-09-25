@@ -13,41 +13,57 @@ body {
   flex-direction: column;
 }
 
+/* Main container for quiz content */
 #container {
   max-width: 600px;
   margin: 12px auto 0;
-  padding: 20px;
+  padding: 24px;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
   text-align: left;
 }
 
+/* Button styling */
 button {
   background: #2563eb;
   color: white;
-  padding: 12px 20px;
+  padding: 14px 24px;
   border: none;
   border-radius: 8px;
   font-size: 16px;
+  font-weight: 500;
   cursor: pointer;
   transition: background 0.2s, transform 0.12s;
   display: inline-block;
+  margin: 8px 4px;
+  white-space: nowrap;
+  min-width: 120px;
 }
+
 button:hover {
   background: #1e40af;
   transform: translateY(-1px);
 }
 
+/* Added disabled button state */
+button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Timer display - hidden by default */
 #timer {
   display: none;
 }
 
+/* Timer when visible with improved styling */
 #timer.visible {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 14px;
+  padding: 10px 16px;
   border-radius: 999px;
   background: linear-gradient(180deg, #ffffff 0%, #f3f4f6 100%);
   box-shadow: 0 4px 10px rgba(2, 6, 23, 0.06);
@@ -58,9 +74,10 @@ button:hover {
   justify-content: center;
   transition: background 200ms, color 200ms, transform 180ms, box-shadow 200ms;
   user-select: none;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
+/* Timer icon */
 #timer::before {
   content: "⏱";
   font-size: 18px;
@@ -69,6 +86,7 @@ button:hover {
   opacity: 0.95;
 }
 
+/* Timer warning state (low time remaining) */
 #timer.warning {
   background: linear-gradient(90deg, #fff1f2 0%, #fee2e2 100%);
   color: #7f1d1d;
@@ -77,6 +95,7 @@ button:hover {
   animation: pulse 1s infinite ease-in-out;
 }
 
+/* Timer expired state */
 #timer.expired {
   background: linear-gradient(180deg, #f3f4f6 0%, #e5e7eb 100%);
   color: #6b7280;
@@ -85,6 +104,7 @@ button:hover {
   animation: none;
 }
 
+/* Pulse animation for warning state */
 @keyframes pulse {
   0% {
     box-shadow: 0 6px 18px rgba(124, 58, 237, 0.04);
@@ -100,6 +120,51 @@ button:hover {
   }
 }
 
+/* input styling for username */
+input[type="text"],
+select {
+  padding: 12px;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+  font-size: 16px;
+  transition: border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 16px;
+}
+
+input[type="text"]:focus,
+select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* radio button and checkbox styling */
+input[type="radio"],
+input[type="checkbox"] {
+  margin-right: 12px;
+  margin-bottom: 0;
+  transform: scale(1.2);
+  vertical-align: middle;
+}
+
+label {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border: 2px solid transparent;
+}
+
+label:hover {
+  background-color: #f8fafc;
+}
+
+/* Mobile responsive */
 @media (max-width: 420px) {
   #container {
     width: 100%;
@@ -112,49 +177,86 @@ button:hover {
   }
 }
 
-
-
-.theme-grid { display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; }
-.theme-card {
-  width:120px; height:120px; border-radius:8px; display:flex;flex-direction:column;
-  align-items:center; justify-content:center; padding:8px; cursor:pointer;
-  border:1px solid #ddd; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.03);
+/* Theme selection grid */
+.theme-grid {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  justify-content: center;
 }
-.theme-card:hover { transform:translateY(-4px); box-shadow:0 6px 18px rgba(0,0,0,0.08); }
-.theme-icon { width:48px; height:48px; margin-bottom:8px; display:block; }
-.theme-label { font-size:14px; text-align:center; }
-.selected-theme { outline:3px solid #3b82f6; }
 
+.theme-card {
+  width: 130px;
+  height: 130px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  cursor: pointer;
+  border: 2px solid #e5e7eb;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
 
+.theme-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: #3b82f6;
+}
 
+.theme-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 12px;
+  display: block;
+  font-size: 32px;
+}
+
+.theme-label {
+  font-size: 14px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.selected-theme {
+  outline: 3px solid #3b82f6;
+  background-color: #eff6ff;
+}
+
+/* Answer feedback styling */
 label.selected-correct {
   background-color: #d1fae5;
-  border: 1px solid #10b981;
+  border: 2px solid #10b981;
   color: #064e3b;
-  padding: 4px 6px;
-  border-radius: 6px;
+  padding: 12px;
+  border-radius: 8px;
 }
 
-/* selected and wrong (user picked a wrong option) */
 label.selected-wrong {
   background-color: #fee2e2;
-  border: 1px solid #ef4444;
+  border: 2px solid #ef4444;
   color: #7f1d1d;
-  padding: 4px 6px;
-  border-radius: 6px;
+  padding: 12px;
+  border-radius: 8px;
 }
 
-/* correct but not selected (revealed to user) */
 label.correct-reveal {
   background-color: transparent;
-  border: 2px dashed #34d399; /* dashed green border to differentiate */
+  border: 2px dashed #34d399;
   color: #065f46;
-  padding: 4px 6px;
-  border-radius: 6px;
+  padding: 12px;
+  border-radius: 8px;
 }
 
-/* short status line under the question */
 .feedback-status {
-  margin-top: 8px;
+  margin-top: 16px;
   font-weight: 700;
+  font-size: 16px;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
 }

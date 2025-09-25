@@ -1,216 +1,288 @@
 import { createEl, formatSeconds } from "./utils.js";
 
-const title = document.querySelector("h1");
-const para = document.querySelector("p");
-const container = document.getElementById("container");
+const pageTitle = document.querySelector("h1");
+const pageDescription = document.querySelector("p");
+const mainContainer = document.getElementById("container");
 
 let timerElement = document.getElementById("timer");
 if (!timerElement) {
   timerElement = createEl("div", { id: "timer" });
   timerElement.style.marginBottom = "8px";
+
   const header = document.querySelector("h1");
-  if (header && header.parentNode)
+  if (header && header.parentNode) {
     header.insertAdjacentElement("afterend", timerElement);
-  else if (container) container.prepend(timerElement);
+  } else if (mainContainer) {
+    mainContainer.prepend(timerElement);
+  }
 }
+
 timerElement.classList.remove("visible", "warning", "expired");
 
+/* Updates the timer display text */
 export function updateTimerText(text) {
   if (!timerElement) return;
   timerElement.textContent = text;
 }
 
+/* Sets the timer visual state (normal, warning, expired) */
 export function setTimerState(state) {
   if (!timerElement) return;
+
   timerElement.classList.remove("warning", "expired");
-  if (state === "warning") timerElement.classList.add("warning");
-  else if (state === "expired") timerElement.classList.add("expired");
+
+  if (state === "warning") {
+    timerElement.classList.add("warning");
+  } else if (state === "expired") {
+    timerElement.classList.add("expired");
+  }
 }
 
+/* Shows or hides the timer element */
 export function setTimerVisible(visible = true) {
   if (!timerElement) return;
   timerElement.classList.toggle("visible", !!visible);
 }
 
+/* Clears the main container content */
 export function clearContainer() {
-  if (container) container.innerHTML = "";
+  if (mainContainer) {
+    mainContainer.innerHTML = "";
+  }
 }
 
-export function showChoiceLevelName({
-  questionsSource = [],
-  onStart,
-  selectedTheme = null,
-}) {
-  if (!container) return;
+/* Shows the username and level selection form */
+export function showChoiceLevelName({ onStart, selectedTheme = null }) {
+  if (!mainContainer) return;
 
-  const startBtn = document.getElementById("start-quiz");
-  if (startBtn) startBtn.style.display = "none";
-
-  title.textContent = "JSQuizStarter";
-  para.textContent =
-    "Please enter a username and choose a level before starting.";
-  container.innerHTML = "";
-  const storedName = localStorage.getItem("username") || "";
-
-  if (selectedTheme) {
-    const themeNote = createEl("div", { text: `Theme: ${selectedTheme}` });
-    themeNote.style.fontWeight = "700";
-    themeNote.style.marginBottom = "8px";
-    container.appendChild(themeNote);
+  const startButton = document.getElementById("start-quiz");
+  if (startButton) {
+    startButton.style.display = "none";
   }
 
-  const nameLabel = createEl("label", { text: "Username" });
-  nameLabel.style.display = "block";
-  nameLabel.style.marginBottom = "6px";
+  pageTitle.textContent = "JSQuizStarter";
+  pageDescription.textContent =
+    "Please enter your username and choose a difficulty level.";
+  mainContainer.innerHTML = "";
+
+  const storedUsername = localStorage.getItem("username") || "";
+
+  if (selectedTheme) {
+    const themeDisplay = createEl("div", {
+      text: `Selected Theme: ${selectedTheme}`,
+      class: "theme-display",
+    });
+    themeDisplay.style.fontWeight = "700";
+    themeDisplay.style.marginBottom = "16px";
+    themeDisplay.style.padding = "12px";
+    themeDisplay.style.backgroundColor = "#eff6ff";
+    themeDisplay.style.borderRadius = "8px";
+    themeDisplay.style.border = "2px solid #3b82f6";
+    mainContainer.appendChild(themeDisplay);
+  }
+
+  const usernameLabel = createEl("label", { text: "Username" });
+  usernameLabel.style.display = "block";
+  usernameLabel.style.marginBottom = "8px";
+  usernameLabel.style.fontWeight = "600";
 
   const usernameInput = createEl("input", {
     type: "text",
     name: "username",
-    placeholder: "Your name",
+    placeholder: "Enter your name",
   });
-  usernameInput.value = storedName;
-  usernameInput.style.padding = "8px";
-  usernameInput.style.borderRadius = "6px";
-  usernameInput.style.border = "1px solid #ddd";
-  usernameInput.style.display = "block";
-  usernameInput.style.width = "100%";
-  usernameInput.style.boxSizing = "border-box";
-  usernameInput.style.marginBottom = "12px";
+  usernameInput.value = storedUsername;
 
-  container.appendChild(nameLabel);
-  container.appendChild(usernameInput);
+  mainContainer.appendChild(usernameLabel);
+  mainContainer.appendChild(usernameInput);
 
-  const levels = ["easy", "medium", "hard"];
+  const levelOptions = ["easy", "medium", "hard"];
+  const levelLabel = createEl("label", { text: "Difficulty Level" });
+  levelLabel.style.display = "block";
+  levelLabel.style.marginBottom = "8px";
+  levelLabel.style.fontWeight = "600";
 
-  const selectLabel = createEl("label", { text: "Choose level" });
-  selectLabel.style.display = "block";
-  selectLabel.style.margin = "8px 0 6px 0";
-  container.appendChild(selectLabel);
+  const levelSelect = createEl("select");
 
-  const select = createEl("select");
-  select.style.padding = "8px";
-  select.style.borderRadius = "6px";
-  select.style.border = "1px solid #ddd";
-  select.style.display = "block";
-  select.style.width = "100%";
-  select.style.boxSizing = "border-box";
+  const defaultOption = createEl("option", {
+    value: "",
+    text: "Select difficulty level",
+  });
+  levelSelect.appendChild(defaultOption);
 
-  const defaultOption = createEl("option", { value: "", text: "Select level" });
-  select.appendChild(defaultOption);
-
-  levels.forEach((l) => {
-    const opt = createEl("option", { value: l, text: l });
-    select.appendChild(opt);
+  levelOptions.forEach((level) => {
+    const option = createEl("option", {
+      value: level,
+      text: level.charAt(0).toUpperCase() + level.slice(1),
+    });
+    levelSelect.appendChild(option);
   });
 
-  container.appendChild(selectLabel);
-  container.appendChild(select);
+  mainContainer.appendChild(levelLabel);
+  mainContainer.appendChild(levelSelect);
 
-  const controls = createEl("div");
-  controls.style.marginTop = "14px";
-  controls.style.display = "flex";
-  controls.style.gap = "8px";
+  const controlsContainer = createEl("div");
+  controlsContainer.style.marginTop = "20px";
+  controlsContainer.style.display = "flex";
+  controlsContainer.style.gap = "12px";
+  controlsContainer.style.flexWrap = "wrap";
 
-  const btnStart = createEl("button", { type: "button", text: "Start" });
-  btnStart.style.flex = "1";
-  const btnCancel = createEl("button", { type: "button", text: "Cancel" });
-  btnCancel.className = "secondary";
-  btnCancel.style.flex = "1";
+  const startQuizButton = createEl("button", {
+    type: "button",
+    text: "Start Quiz",
+  });
+  startQuizButton.style.flex = "1";
+  startQuizButton.style.minWidth = "120px";
 
-  controls.appendChild(btnStart);
-  controls.appendChild(btnCancel);
-  container.appendChild(controls);
+  const cancelButton = createEl("button", {
+    type: "button",
+    text: "Cancel",
+  });
+  cancelButton.style.flex = "1";
+  cancelButton.style.backgroundColor = "#6b7280";
+  cancelButton.style.minWidth = "120px";
 
-  function cleanup() {
-    btnStart.removeEventListener("click", startHandler);
-    btnCancel.removeEventListener("click", cancelHandler);
-    usernameInput.removeEventListener("keydown", keyHandler);
-    select.removeEventListener("keydown", keyHandler);
-  }
+  controlsContainer.appendChild(startQuizButton);
+  controlsContainer.appendChild(cancelButton);
+  mainContainer.appendChild(controlsContainer);
 
-  function startHandler() {
+  function handleStartQuiz() {
     const username = (usernameInput.value || "").trim();
-    const selectedLevel = select.value;
+    const selectedLevel = levelSelect.value;
+
     if (!username) {
-      alert("Please enter your name before starting.");
+      alert("Please enter your username before starting.");
       usernameInput.focus();
       return;
     }
+
     if (!selectedLevel) {
-      alert("Choose a level please!");
-      select.focus();
+      alert("Please choose a difficulty level!");
+      levelSelect.focus();
       return;
     }
+
     cleanup();
-    if (typeof onStart === "function")
+
+    if (typeof onStart === "function") {
       onStart({ username, level: selectedLevel, theme: selectedTheme });
+    }
   }
 
-  function cancelHandler() {
+  function handleCancel() {
     cleanup();
-    title.textContent = "JSQuizStarter";
-    para.textContent = "Press Start to begin the quiz.";
-    container.innerHTML = "";
-    if (startBtn) startBtn.style.display = "";
+
+    pageTitle.textContent = "JSQuizStarter";
+    pageDescription.textContent =
+      "Challenge yourself with interactive quizzes that make you stronger!";
+    mainContainer.innerHTML = "";
+
+    if (startButton) {
+      startButton.style.display = "";
+    }
   }
 
-  function keyHandler(e) {
-    if (e.key === "Enter") startHandler();
+  function handleKeyPress(event) {
+    if (event.key === "Enter") {
+      handleStartQuiz();
+    }
   }
 
-  btnStart.addEventListener("click", startHandler);
-  btnCancel.addEventListener("click", cancelHandler);
-  usernameInput.addEventListener("keydown", keyHandler);
-  select.addEventListener("keydown", keyHandler);
+  function cleanup() {
+    startQuizButton.removeEventListener("click", handleStartQuiz);
+    cancelButton.removeEventListener("click", handleCancel);
+    usernameInput.removeEventListener("keydown", handleKeyPress);
+    levelSelect.removeEventListener("keydown", handleKeyPress);
+  }
+
+  startQuizButton.addEventListener("click", handleStartQuiz);
+  cancelButton.addEventListener("click", handleCancel);
+  usernameInput.addEventListener("keydown", handleKeyPress);
+  levelSelect.addEventListener("keydown", handleKeyPress);
 
   usernameInput.focus();
 }
 
 export function renderQuestionUI({ q, index, total }) {
-  if (!container) return {};
-  title.textContent = `Question ${index + 1} / ${total}`;
-  para.textContent = q.question;
-  container.innerHTML = "";
+  if (!mainContainer) return {};
+
+  pageTitle.textContent = `Question ${index + 1} of ${total}`;
+  pageDescription.textContent = q.question;
+  mainContainer.innerHTML = "";
+
   setTimerState("");
   setTimerVisible(true);
 
-  const multiple = (q.correct || []).length > 1;
-  q.options.forEach((optText, i) => {
+  const isMultipleChoice = (q.correct || []).length > 1;
+  const inputType = isMultipleChoice ? "checkbox" : "radio";
+
+  q.options.forEach((optionText, optionIndex) => {
+    const optionContainer = createEl("div");
+    optionContainer.style.display = "flex";
+    optionContainer.style.alignItems = "center";
+    optionContainer.style.marginBottom = "8px";
+    optionContainer.style.padding = "12px";
+    optionContainer.style.borderRadius = "8px";
+    optionContainer.style.cursor = "pointer";
+    optionContainer.style.transition = "background-color 0.2s";
+    optionContainer.style.border = "2px solid transparent";
+
     const input = createEl("input", {
-      type: multiple ? "checkbox" : "radio",
-      id: `q${index}_opt${i}`,
+      type: inputType,
+      id: `q${index}_opt${optionIndex}`,
       name: `q${index}`,
-      value: i,
+      value: optionIndex,
     });
+    input.style.marginRight = "12px";
+    input.style.transform = "scale(1.2)";
+
     const label = createEl("label", {
-      for: `q${index}_opt${i}`,
-      text: optText,
+      for: `q${index}_opt${optionIndex}`,
+      text: optionText,
     });
-    container.appendChild(input);
-    container.appendChild(label);
-    container.appendChild(createEl("br"));
+    label.style.cursor = "pointer";
+    label.style.flex = "1";
+    label.style.margin = "0";
+    label.style.padding = "0";
+    label.style.border = "none";
+    label.style.display = "block";
+
+    optionContainer.addEventListener("mouseenter", () => {
+      optionContainer.style.backgroundColor = "#f8fafc";
+    });
+    optionContainer.addEventListener("mouseleave", () => {
+      optionContainer.style.backgroundColor = "transparent";
+    });
+
+    optionContainer.appendChild(input);
+    optionContainer.appendChild(label);
+    mainContainer.appendChild(optionContainer);
   });
 
   const validateButton = createEl("button", {
     type: "button",
     id: "validate-button",
-    text: "Validate",
+    text: "Submit Answer",
   });
-  container.appendChild(validateButton);
+  validateButton.style.marginTop = "20px";
+  validateButton.style.width = "100%";
+  mainContainer.appendChild(validateButton);
 
   function getSelectedIndices() {
-    const selectedNodes = container.querySelectorAll(
+    const selectedInputs = mainContainer.querySelectorAll(
       `input[name="q${index}"]:checked`
     );
-    return selectedNodes && selectedNodes.length
-      ? Array.from(selectedNodes).map((n) => Number(n.value))
+    return selectedInputs && selectedInputs.length
+      ? Array.from(selectedInputs).map((input) => Number(input.value))
       : [];
   }
 
   function focusFirstInput() {
     setTimeout(() => {
-      const firstInput = container.querySelector(`input[name="q${index}"]`);
-      if (firstInput) firstInput.focus();
+      const firstInput = mainContainer.querySelector(`input[name="q${index}"]`);
+      if (firstInput) {
+        firstInput.focus();
+      }
     }, 0);
   }
 
@@ -227,8 +299,8 @@ export function showResultUI({
 }) {
   setTimerVisible(false);
   clearContainer();
-  title.textContent = "Quiz terminé";
-  para.textContent = `Score: ${score} / ${total}`;
+  pageTitle.textContent = "Quiz terminé";
+  pageDescription.textContent = `Score: ${score} / ${total}`;
 
   const message = createEl("p", {
     text:
@@ -240,19 +312,19 @@ export function showResultUI({
   });
   message.style.fontWeight = "600";
   message.style.marginTop = "6px";
-  container.appendChild(message);
+  mainContainer.appendChild(message);
 
   const timeText = createEl("p", {
     text: `You took: ${formatSeconds(elapsedMs)}`,
   });
   timeText.style.marginTop = "6px";
-  container.appendChild(timeText);
+  mainContainer.appendChild(timeText);
 
   const corrHeader = createEl("h3", { text: "Corrections" });
   corrHeader.style.marginTop = "12px";
   corrHeader.style.fontSize = "16px";
   corrHeader.style.fontWeight = "700";
-  container.appendChild(corrHeader);
+  mainContainer.appendChild(corrHeader);
 
   const correctionsWrap = createEl("div");
   correctionsWrap.style.marginTop = "8px";
@@ -317,7 +389,7 @@ export function showResultUI({
     correctionsWrap.appendChild(qDiv);
   });
 
-  container.appendChild(correctionsWrap);
+  mainContainer.appendChild(correctionsWrap);
 
   const controls = createEl("div");
   controls.style.marginTop = "12px";
@@ -334,7 +406,7 @@ export function showResultUI({
   });
   controls.appendChild(restart);
   controls.appendChild(exportPDF);
-  container.appendChild(controls);
+  mainContainer.appendChild(controls);
 
   restart.addEventListener("click", () => {
     if (typeof onRestart === "function") onRestart();
@@ -351,7 +423,7 @@ export function showResultUI({
         html2canvas: { scale: 2 },
         jsPDF: { unit: "in", format: "A4", orientation: "portrait" },
       };
-      await html2pdf().set(opt).from(document.body).save();
+      await window.html2pdf().set(opt).from(document.body).save();
     } catch (e) {
       console.error("pdf generation failed", e);
     } finally {
@@ -362,12 +434,12 @@ export function showResultUI({
 }
 
 export function showThemeSelection({ themes = [], onThemeSelect }) {
-  if (!container) return;
+  if (!mainContainer) return;
   const startBtn = document.getElementById("start-quiz");
   if (startBtn) startBtn.style.display = "none";
-  title.textContent = "Choose a theme";
-  para.textContent = "Pick a theme to start the quiz.";
-  container.innerHTML = "";
+  pageTitle.textContent = "Choose a theme";
+  pageDescription.textContent = "Pick a theme to start the quiz.";
+  mainContainer.innerHTML = "";
 
   const grid = createEl("div");
   grid.className = "theme-grid";
@@ -394,7 +466,7 @@ export function showThemeSelection({ themes = [], onThemeSelect }) {
     grid.appendChild(card);
   });
 
-  container.appendChild(grid);
+  mainContainer.appendChild(grid);
 }
 
 let feedbackTimeout = null;
@@ -476,7 +548,7 @@ export function visualFeedback(
   const para = document.querySelector("p");
   if (para && para.parentNode)
     para.parentNode.insertBefore(status, para.nextSibling);
-  else container.prepend(status);
+  else mainContainer.prepend(status);
 
   feedbackTimeout = setTimeout(() => {
     selectedIndices.forEach((i) => {

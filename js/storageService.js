@@ -1,65 +1,89 @@
+// Storage keys for different data types
+const STORAGE_KEYS = {
+  HISTORY: "quizHistory",
+  USERNAME: "username",
+  LEVEL: "level",
+  THEME: "theme",
+};
 
-const HISTORY_KEY = "quizHistory";
-const USER_KEY = "username";
-const LEVEL_KEY = "level";
-const THEME_KEY = "theme";
-
+/* Initializes local storage with empty quiz history if not exists */
 export function initStorage() {
-  if (!localStorage.getItem(HISTORY_KEY)) {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify([]));
+  if (!localStorage.getItem(STORAGE_KEYS.HISTORY)) {
+    localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify([]));
   }
 }
 
+/* Saves a quiz attempt to local storage history */
 export function saveAttempt(attempt) {
   try {
-    const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+    const history = getHistory();
     history.push(attempt);
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
-  } catch (e) {
-    console.error("Failed to save quiz history:", e);
+    localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history));
+  } catch (error) {
+    console.error("Failed to save quiz attempt:", error);
   }
 }
 
+/* Retrieves quiz history from local storage */
 export function getHistory() {
   try {
-    return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
-  } catch (e) {
+    return JSON.parse(localStorage.getItem(STORAGE_KEYS.HISTORY) || "[]");
+  } catch (error) {
+    console.error("Failed to retrieve quiz history:", error);
     return [];
   }
 }
 
-export function setUsername(name) {
+/* Saves username to local storage */
+export function setUsername(username) {
   try {
-    localStorage.setItem(USER_KEY, name);
-  } catch (e) {
-    console.error("Failed to set username", e);
+    localStorage.setItem(STORAGE_KEYS.USERNAME, username);
+  } catch (error) {
+    console.error("Failed to save username:", error);
   }
 }
 
+/* Retrieves username from local storage */
 export function getUsername() {
-  return localStorage.getItem(USER_KEY) || "";
+  return localStorage.getItem(STORAGE_KEYS.USERNAME) || "";
 }
 
+/* Saves selected difficulty level to local storage */
 export function setLevel(level) {
   try {
-    localStorage.setItem(LEVEL_KEY, level);
-  } catch (e) {
-    console.error("Failed to set level", e);
+    localStorage.setItem(STORAGE_KEYS.LEVEL, level);
+  } catch (error) {
+    console.error("Failed to save level:", error);
   }
 }
 
+/* Retrieves difficulty level from local storage */
 export function getLevel() {
-  return localStorage.getItem(LEVEL_KEY) || "";
+  return localStorage.getItem(STORAGE_KEYS.LEVEL) || "";
 }
 
+/* Saves selected theme to local storage
+ */
 export function setTheme(theme) {
   try {
-    localStorage.setItem(THEME_KEY, theme)
-  } catch (e) {
-    console.log("Failed to set theme", e);
+    localStorage.setItem(STORAGE_KEYS.THEME, theme);
+  } catch (error) {
+    console.error("Failed to save theme:", error);
   }
 }
 
+/* Retrieves theme from local storage */
 export function getTheme() {
-  return localStorage.getItem(THEME_KEY) || "";
+  return localStorage.getItem(STORAGE_KEYS.THEME) || "";
+}
+
+/* Clears user session data (username, level, theme) from storage */
+export function clearSessionData() {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.USERNAME);
+    localStorage.removeItem(STORAGE_KEYS.LEVEL);
+    localStorage.removeItem(STORAGE_KEYS.THEME);
+  } catch (error) {
+    console.error("Failed to clear session data:", error);
+  }
 }

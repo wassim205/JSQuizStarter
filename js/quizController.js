@@ -1,181 +1,284 @@
+// Quiz controller - manages quiz flow, timing, and scoring
 import * as UI from "./uiController.js";
 import * as Storage from "./storageService.js";
 import { safeNumber } from "./utils.js";
 
-let activeQuestions = [];
-let currentIndex = 0;
-let answersSelected = [];
+// Quiz state variables
+let currentQuestions = [];
+let currentQuestionIndex = 0;
+let userAnswers = [];
 let userSelections = [];
-let startTime = null;
-let countdown = null;
-export function startQuiz(questionsArray = [], meta = {}) {
-  if (!Array.isArray(questionsArray) || questionsArray.length === 0) {
-    alert("No questions to start.");
+let quizStartTime = null;
+let questionTimer = null;
+
+/* Starts a new quiz with the provided questions */
+export function startQuiz(questions = [], metadata = {}) {
+  if (!Array.isArray(questions) || questions.length === 0) {
+    alert("No questions available to start the quiz.");
     return;
   }
-  activeQuestions = questionsArray.slice();
-  currentIndex = 0;
-  answersSelected = [];
+
+  // Initialize quiz state
+  currentQuestions = questions.slice();
+  currentQuestionIndex = 0;
+  userAnswers = [];
   userSelections = [];
-  startTime = Date.now();
-  const startBtn = document.getElementById("start-quiz");
-  if (startBtn) startBtn.style.display = "none";
+  quizStartTime = Date.now();
 
-  renderQuestion(currentIndex);
+  // Hide start button
+  const startButton = document.getElementById("start-quiz");
+  if (startButton) {
+    startButton.style.display = "none";
+  }
+
+  // Start with first question
+  displayQuestion(currentQuestionIndex);
 }
-export function renderQuestion(index) {
-  const q = activeQuestions[index];
-  if (!q) return;
 
+/* Displays a question at the specified index */
+function displayQuestion(questionIndex) {
+  const question = currentQuestions[questionIndex];
+  if (!question) {
+    console.error("Question not found at index:", questionIndex);
+    return;
+  }
+
+  // Render question
   const { validateButton, getSelectedIndices, focusFirstInput } =
     UI.renderQuestionUI({
-      q,
-      index,
-      total: activeQuestions.length,
+      q: question,
+      index: questionIndex,
+      total: currentQuestions.length,
     });
 
-  let timerLeft = safeNumber(q.time, 15) || 15;
-  UI.updateTimerText(timerLeft);
+  // Set up question timer
+  const timeLimit = safeNumber(question.time, 15) || 15;
+  startQuestionTimer(timeLimit, validateButton, getSelectedIndices, question);
+
+  // Set up validation button
+  validateButton.addEventListener("click", () => {
+    handleAnswerSubmission(false, getSelectedIndices, question, questionIndex);
+  });
+
+  // Focus on first input for better UX
+  if (typeof focusFirstInput === "function") {
+    focusFirstInput();
+  }
+}
+
+/* Starts the countdown timer for a question */
+function startQuestionTimer(timeLimit, getSelectedIndices, question) {
+  let timeRemaining = timeLimit;
+
+  // Update timer display
+  UI.updateTimerText(timeRemaining);
   UI.setTimerState("");
   UI.setTimerVisible(true);
 
-  clearInterval(countdown);
-  countdown = setInterval(() => {
-    timerLeft--;
-    UI.updateTimerText(timerLeft);
+  // Clear any existing timer
+  clearInterval(questionTimer);
 
-    if (timerLeft <= 3 && timerLeft > 0) UI.setTimerState("warning");
-    else UI.setTimerState("");
+  // Start countdown
+  questionTimer = setInterval(() => {
+    timeRemaining--;
+    UI.updateTimerText(timeRemaining);
 
-    if (timerLeft <= 0) {
-      clearInterval(countdown);
+    // Show warning when time is low
+    if (timeRemaining <= 3 && timeRemaining > 0) {
+      UI.setTimerState("warning");
+    } else {
+      UI.setTimerState("");
+    }
+
+    // Handle timeout
+    if (timeRemaining <= 0) {
+      clearInterval(questionTimer);
       UI.setTimerState("expired");
-      submitAnswer(true);
+      handleAnswerSubmission(
+        true,
+        getSelectedIndices,
+        question,
+        currentQuestionIndex
+      );
     }
   }, 1000);
-
-  function captureSelection() {
-    const selected = getSelectedIndices();
-    userSelections[index] = selected;
-    return selected;
-  }
-
-  function proceedAfterSelection(markedCorrect) {
-    clearInterval(countdown);
-    validateButton.disabled = true;
-    answersSelected[index] = !!markedCorrect;
-    q._wasCorrect = !!markedCorrect;
-
-    currentIndex++;
-    if (currentIndex < activeQuestions.length) {
-      renderQuestion(currentIndex);
-    } else {
-      finishQuiz();
-    }
-  }
-  function submitAnswer(fromTimeout = false) {
-    if (validateButton.disabled) return;
-
-    const selected = captureSelection();
-    const multiple = (q.correct || []).length > 1;
-    const correct = (q.correct || []).map(Number).sort((a, b) => a - b);
-
-    if (!selected || selected.length === 0) {
-      if (!fromTimeout) {
-        alert(
-          multiple
-            ? "Choose at least one answer please!"
-            : "Choose an answer please!"
-        );
-        return;
-      }
-      clearInterval(countdown);
-      validateButton.disabled = true;
-      Array.from(
-        container.querySelectorAll(`input[name="q${currentIndex}"]`)
-      ).forEach((i) => (i.disabled = true));
-      UI.visualFeedback(currentIndex, [], correct, () => {
-        proceedAfterSelection(false);
-      });
-      return;
-    }
-
-    let isCorrect = false;
-    if (multiple) {
-      const sortedSelected = selected.map(Number).sort((a, b) => a - b);
-      isCorrect =
-        sortedSelected.length === correct.length &&
-        sortedSelected.every((v, i) => v === correct[i]);
-    } else {
-      isCorrect = Number(selected[0]) === correct[0];
-    }
-
-    clearInterval(countdown);
-    validateButton.disabled = true;
-    Array.from(
-      container.querySelectorAll(`input[name="q${currentIndex}"]`)
-    ).forEach((i) => (i.disabled = true));
-
-    UI.visualFeedback(currentIndex, selected.map(Number), correct, () => {
-      proceedAfterSelection(!!isCorrect);
-    });
-  }
-
-  validateButton.addEventListener("click", function () {
-    submitAnswer(false);
-  });
-
-  if (typeof focusFirstInput === "function") focusFirstInput();
 }
 
-function finishQuiz() {
-  clearInterval(countdown);
-  const elapsed = Date.now() - (startTime || Date.now());
-  const correctCount = answersSelected.filter(Boolean).length;
+/* Handles answer submission (by user click or timeout) */
+function handleAnswerSubmission(
+  isTimeout,
+  getSelectedIndices,
+  question,
+  questionIndex
+) {
+  const validateButton = document.getElementById("validate-button");
 
-  const attempt = {
-    username: Storage.getUsername() || "anonymous",
+  // Prevent multiple submissions
+  if (validateButton && validateButton.disabled) {
+    return;
+  }
+
+  // Get user's selected answers
+  const selectedIndices = getSelectedIndices();
+  const correctIndices = (question.correct || []).map(Number);
+  const isMultipleChoice = correctIndices.length > 1;
+
+  // Store user selection
+  userSelections[questionIndex] = selectedIndices;
+
+  // Validate selection (unless timeout with no selection)
+  if (!selectedIndices || selectedIndices.length === 0) {
+    if (!isTimeout) {
+      const message = isMultipleChoice
+        ? "Please select at least one answer!"
+        : "Please select an answer!";
+      alert(message);
+      return;
+    }
+  }
+
+  // Stop timer and disable inputs
+  clearInterval(questionTimer);
+  disableQuestionInputs(questionIndex, validateButton);
+
+  // Check if answer is correct
+  const isCorrect = checkAnswerCorrectness(
+    selectedIndices,
+    correctIndices,
+    isMultipleChoice
+  );
+
+  // Store answer result
+  userAnswers[questionIndex] = isCorrect;
+  question._wasCorrect = isCorrect;
+
+  // Show visual feedback then proceed
+  UI.visualFeedback(questionIndex, selectedIndices, correctIndices, () => {
+    proceedToNextQuestion();
+  });
+}
+
+/* Checks if the selected answers are correct */
+function checkAnswerCorrectness(selected, correct, isMultiple) {
+  if (!selected || selected.length === 0) {
+    return false;
+  }
+
+  if (isMultiple) {
+    // For multiple choice, all selections must match exactly
+    const sortedSelected = selected.map(Number).sort((a, b) => a - b);
+    const sortedCorrect = correct.sort((a, b) => a - b);
+
+    return (
+      sortedSelected.length === sortedCorrect.length &&
+      sortedSelected.every((value, index) => value === sortedCorrect[index])
+    );
+  } else {
+    // For single choice, check if the first selection matches
+    return Number(selected[0]) === correct[0];
+  }
+}
+
+/* Disables all inputs for the current question */
+function disableQuestionInputs(questionIndex, validateButton) {
+  // Disable validate button
+  if (validateButton) {
+    validateButton.disabled = true;
+  }
+
+  // Disable all question inputs
+  const container = document.getElementById("container");
+  if (container) {
+    const inputs = container.querySelectorAll(
+      `input[name="q${questionIndex}"]`
+    );
+    inputs.forEach((input) => {
+      input.disabled = true;
+    });
+  }
+}
+
+/* Proceeds to the next question or finishes the quiz */
+function proceedToNextQuestion() {
+  currentQuestionIndex++;
+
+  if (currentQuestionIndex < currentQuestions.length) {
+    displayQuestion(currentQuestionIndex);
+  } else {
+    finishQuiz();
+  }
+}
+
+/* Finishes the quiz and shows results */
+function finishQuiz() {
+  // Stop any running timer
+  clearInterval(questionTimer);
+
+  // Calculate results
+  const quizEndTime = Date.now();
+  const elapsedTime = quizEndTime - (quizStartTime || quizEndTime);
+  const correctAnswers = userAnswers.filter(Boolean).length;
+
+  // Create attempt record
+  const quizAttempt = {
+    username: Storage.getUsername() || "Anonymous",
     date: new Date().toISOString(),
-    score: correctCount + "/10",
-    level: Storage.getLevel() || null,
-    theme: Storage.getTheme() || null,
+    score: `${correctAnswers}/${currentQuestions.length}`,
+    level: Storage.getLevel() || "Unknown",
+    theme: Storage.getTheme() || "Unknown",
     answers: userSelections,
-    elapsedMs: elapsed,
+    elapsedMs: elapsedTime,
   };
 
+  // Save attempt and clear session data
   try {
-    localStorage.removeItem("username");
-    localStorage.removeItem("level");
-    localStorage.removeItem("theme");
-    Storage.saveAttempt(attempt);
-  } catch (e) {
-    console.error("Could not save attempt:", e);
+    Storage.saveAttempt(quizAttempt);
+    Storage.clearSessionData();
+  } catch (error) {
+    console.error("Could not save quiz attempt:", error);
   }
 
   UI.showResultUI({
-    score: correctCount,
-    total: activeQuestions.length,
+    score: correctAnswers,
+    total: currentQuestions.length,
     userSelections,
-    activeQuestions,
-    elapsedMs: elapsed,
-    onRestart: () => restartQuiz(),
+    activeQuestions: currentQuestions,
+    elapsedMs: elapsedTime,
+    onRestart: restartQuiz,
   });
 }
 
+/* Restarts the quiz application to initial state */
 export function restartQuiz() {
-  clearInterval(countdown);
-  currentIndex = 0;
-  answersSelected = [];
+  // Clear quiz state
+  clearInterval(questionTimer);
+  currentQuestionIndex = 0;
+  userAnswers = [];
   userSelections = [];
-  startTime = null;
-  activeQuestions = [];
+  quizStartTime = null;
+  currentQuestions = [];
 
-  const startBtn = document.getElementById("start-quiz");
-  if (startBtn) startBtn.style.display = "";
+  const startButton = document.getElementById("start-quiz");
+  if (startButton) {
+    startButton.style.display = "";
+  }
+
   const title = document.querySelector("h1");
-  const para = document.querySelector("p");
-  if (title) title.textContent = "JSQuizStarter";
-  if (para) para.textContent = "Press Start to begin the quiz.";
+  const description = document.querySelector("p");
+
+  if (title) {
+    title.textContent = "JSQuizStarter";
+  }
+
+  if (description) {
+    description.textContent =
+      "Challenge yourself with interactive quizzes that make you stronger!";
+  }
+
   const container = document.getElementById("container");
-  if (container) container.innerHTML = "";
+  if (container) {
+    container.innerHTML = "";
+  }
+
+  UI.setTimerVisible(false);
 }
