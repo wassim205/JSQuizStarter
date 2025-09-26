@@ -2,6 +2,7 @@
 import * as UI from "./uiController.js";
 import * as Quiz from "./quizController.js";
 import * as Storage from "./storageService.js";
+import { statesUI } from "./stats.js";
 
 // Available quiz themes with icons and labels
 const QUIZ_THEMES = [

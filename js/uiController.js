@@ -299,138 +299,246 @@ export function showResultUI({
 }) {
   setTimerVisible(false);
   clearContainer();
-  pageTitle.textContent = "Quiz terminé";
-  pageDescription.textContent = `Score: ${score} / ${total}`;
+  
+  // Update page header
+  pageTitle.textContent = "Quiz Terminé !";
+  pageDescription.textContent = `Vous avez complété le quiz avec un score de ${score}/${total}`;
 
-  const message = createEl("p", {
-    text:
-      score < Math.ceil(total / 2)
-        ? "Revise your knowledge"
-        : score === Math.ceil(total / 2)
-        ? "Could be better"
-        : "VERY GOOD",
+  // Create main result container
+  const resultContainer = createEl("div", { className: "result-container" });
+  
+  // Score summary card
+  const scoreCard = createScoreCard(score, total, elapsedMs);
+  resultContainer.appendChild(scoreCard);
+
+  // Performance message
+  const message = createPerformanceMessage(score, total);
+  resultContainer.appendChild(message);
+
+  // Action buttons
+  const buttonsContainer = createActionButtons(onRestart);
+  resultContainer.appendChild(buttonsContainer);
+
+  // Corrections section
+  const correctionsSection = createCorrectionsSection(activeQuestions, userSelections);
+  resultContainer.appendChild(correctionsSection);
+
+  mainContainer.appendChild(resultContainer);
+}
+
+// Creates the score summary card with main statistics
+function createScoreCard(score, total, elapsedMs) {
+  const scoreCard = createEl("div", { className: "score-card" });
+  
+  const percentage = Math.round((score / total) * 100);
+  
+  scoreCard.innerHTML = `
+    <div class="score-circle">
+      <div class="score-percentage">${percentage}%</div>
+      <div class="score-fraction">${score}/${total}</div>
+    </div>
+    <div class="score-details">
+      <div class="time-taken">⏱️ Temps: ${formatSeconds(elapsedMs)}</div>
+      <div class="accuracy">🎯 Précision: ${percentage}%</div>
+    </div>
+  `;
+  
+  return scoreCard;
+}
+
+// Creates performance message based on score
+function createPerformanceMessage(score, total) {
+  const messageDiv = createEl("div", { className: "performance-message" });
+  
+  let messageText, messageType;
+  const percentage = (score / total) * 100;
+  
+  if (percentage < 50) {
+    messageText = "📚 Continuez à réviser, vous progresserez !";
+    messageType = "average";
+  } else if (percentage < 75) {
+    messageText = "👍 Bon travail, vous pouvez encore vous améliorer !";
+    messageType = "good";
+  } else if (percentage < 90) {
+    messageText = "🎉 Excellent travail !";
+    messageType = "excellent";
+  } else {
+    messageText = "🏆 Performance exceptionnelle !";
+    messageType = "outstanding";
+  }
+  
+  messageDiv.textContent = messageText;
+  messageDiv.classList.add(messageType);
+  
+  return messageDiv;
+}
+
+// Creates action buttons (Restart, Statistics, Export PDF)
+function createActionButtons(onRestart) {
+  const buttonsContainer = createEl("div", { className: "action-buttons" });
+  
+  // Restart button
+  const restartBtn = createEl("button", { 
+    className: "btn btn-primary",
+    text: "🔄 Recommencer le Quiz" 
   });
-  message.style.fontWeight = "600";
-  message.style.marginTop = "6px";
-  mainContainer.appendChild(message);
-
-  const timeText = createEl("p", {
-    text: `You took: ${formatSeconds(elapsedMs)}`,
+  
+  // Statistics button - new functionality
+  const statsBtn = createEl("button", { 
+    className: "btn btn-secondary",
+    text: "📊 Voir les Statistiques" 
   });
-  timeText.style.marginTop = "6px";
-  mainContainer.appendChild(timeText);
-
-  const corrHeader = createEl("h3", { text: "Corrections" });
-  corrHeader.style.marginTop = "12px";
-  corrHeader.style.fontSize = "16px";
-  corrHeader.style.fontWeight = "700";
-  mainContainer.appendChild(corrHeader);
-
-  const correctionsWrap = createEl("div");
-  correctionsWrap.style.marginTop = "8px";
-  correctionsWrap.style.borderTop = "1px solid #eee";
-
-  activeQuestions.forEach((q, i) => {
-    const qDiv = createEl("div");
-    qDiv.style.padding = "12px 6px";
-    qDiv.style.borderBottom = "1px solid #f2f4f7";
-    qDiv.style.background = i % 2 === 0 ? "transparent" : "#fbfdff";
-
-    const qTitle = createEl("div");
-    const strong = createEl("strong", { text: `Q${i + 1}: ` });
-    const qTextSpan = createEl("span", { text: q.question });
-    qTitle.appendChild(strong);
-    qTitle.appendChild(qTextSpan);
-    qTitle.style.marginBottom = "6px";
-    qDiv.appendChild(qTitle);
-
-    const userIdx = (userSelections && userSelections[i]) || [];
-    const userText =
-      userIdx.length > 0
-        ? userIdx
-            .map((idx) =>
-              typeof q.options[idx] !== "undefined"
-                ? q.options[idx]
-                : "(invalid selection)"
-            )
-            .join(", ")
-        : "(no selection)";
-    const userLine = createEl("div");
-    userLine.appendChild(createEl("em", { text: "Your answer: " }));
-    userLine.appendChild(createEl("span", { text: userText }));
-    userLine.style.marginBottom = "4px";
-    qDiv.appendChild(userLine);
-
-    const correctIdx = (q.correct || []).map(Number);
-    const correctText =
-      correctIdx.length > 0
-        ? correctIdx
-            .map((idx) =>
-              typeof q.options[idx] !== "undefined"
-                ? q.options[idx]
-                : "(invalid index)"
-            )
-            .join(", ")
-        : "(none)";
-    const correctLine = createEl("div");
-    correctLine.appendChild(createEl("em", { text: "Correct: " }));
-    correctLine.appendChild(createEl("span", { text: correctText }));
-    correctLine.style.marginBottom = "6px";
-    qDiv.appendChild(correctLine);
-
-    const wasCorrect = !!q._wasCorrect;
-    const okLine = createEl("div", {
-      text: wasCorrect ? "✅ Correct" : "❌ Incorrect",
-    });
-    okLine.style.color = wasCorrect ? "#065f46" : "#991b1b";
-    okLine.style.fontWeight = "700";
-    qDiv.appendChild(okLine);
-
-    correctionsWrap.appendChild(qDiv);
+  
+  // Export PDF button
+  const exportBtn = createEl("button", { 
+    className: "btn btn-outline",
+    text: "📄 Exporter en PDF" 
   });
-
-  mainContainer.appendChild(correctionsWrap);
-
-  const controls = createEl("div");
-  controls.style.marginTop = "12px";
-  const restart = createEl("button", {
-    type: "button",
-    id: "restart",
-    text: "Restart the quiz",
-  });
-  restart.style.margin = "14px";
-  const exportPDF = createEl("button", {
-    type: "button",
-    id: "export-pdf",
-    text: "Export as PDF",
-  });
-  controls.appendChild(restart);
-  controls.appendChild(exportPDF);
-  mainContainer.appendChild(controls);
-
-  restart.addEventListener("click", () => {
+  
+  // Add buttons to container
+  buttonsContainer.appendChild(restartBtn);
+  buttonsContainer.appendChild(statsBtn);
+  buttonsContainer.appendChild(exportBtn);
+  
+  // Event listeners
+  restartBtn.addEventListener("click", () => {
     if (typeof onRestart === "function") onRestart();
   });
-
-  exportPDF.addEventListener("click", async () => {
-    restart.style.display = "none";
-    exportPDF.style.display = "none";
-    try {
-      const opt = {
-        margin: 0.5,
-        filename: "myGameHistory.pdf",
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: "in", format: "A4", orientation: "portrait" },
-      };
-      await window.html2pdf().set(opt).from(document.body).save();
-    } catch (e) {
-      console.error("pdf generation failed", e);
-    } finally {
-      restart.style.display = "inline-block";
-      exportPDF.style.display = "inline-block";
-    }
+  
+  statsBtn.addEventListener("click", () => {
+    // Import and call the statistics UI function
+    import("./stats.js").then(module => {
+      module.statesUI();
+    });
   });
+  
+  exportBtn.addEventListener("click", handlePDFExport);
+  
+  return buttonsContainer;
+}
+
+// Creates the corrections section with question-by-question feedback
+function createCorrectionsSection(activeQuestions, userSelections) {
+  const section = createEl("section", { className: "corrections-section" });
+  
+  const header = createEl("h3", { 
+    className: "corrections-header",
+    text: "📝 Correction des Réponses" 
+  });
+  section.appendChild(header);
+  
+  const correctionsList = createEl("div", { className: "corrections-list" });
+  
+  activeQuestions.forEach((question, index) => {
+    const questionCard = createQuestionCorrection(question, userSelections, index);
+    correctionsList.appendChild(questionCard);
+  });
+  
+  section.appendChild(correctionsList);
+  return section;
+}
+
+// Creates individual question correction card
+function createQuestionCorrection(question, userSelections, questionIndex) {
+  const card = createEl("div", { className: "question-correction" });
+  
+  const userAnswers = getUserAnswers(question, userSelections, questionIndex);
+  const correctAnswers = getCorrectAnswers(question);
+  const isCorrect = checkIfCorrect(question, userSelections, questionIndex);
+  
+  card.innerHTML = `
+    <div class="question-header">
+      <span class="question-number">Question ${questionIndex + 1}</span>
+      <span class="status-badge ${isCorrect ? 'correct' : 'incorrect'}">
+        ${isCorrect ? '✅ Correct' : '❌ Incorrect'}
+      </span>
+    </div>
+    <div class="question-text">${question.question}</div>
+    <div class="answers-comparison">
+      <div class="answer-row">
+        <span class="answer-label">Votre réponse:</span>
+        <span class="user-answer ${isCorrect ? 'correct' : 'incorrect'}">${userAnswers}</span>
+      </div>
+      ${!isCorrect ? `
+        <div class="answer-row">
+          <span class="answer-label">Réponse correcte:</span>
+          <span class="correct-answer">${correctAnswers}</span>
+        </div>
+      ` : ''}
+    </div>
+  `;
+  
+  return card;
+}
+
+// Helper function to get user's answers as text
+function getUserAnswers(question, userSelections, questionIndex) {
+  const userIndices = userSelections[questionIndex] || [];
+  
+  if (userIndices.length === 0) {
+    return "<em>Aucune réponse sélectionnée</em>";
+  }
+  
+  return userIndices.map(idx => {
+    return question.options && question.options[idx] 
+      ? question.options[idx] 
+      : "<em>Réponse invalide</em>";
+  }).join(", ");
+}
+
+// Helper function to get correct answers as text
+function getCorrectAnswers(question) {
+  const correctIndices = (question.correct || []).map(Number);
+  
+  if (correctIndices.length === 0) {
+    return "<em>Aucune réponse correcte définie</em>";
+  }
+  
+  return correctIndices.map(idx => {
+    return question.options && question.options[idx] 
+      ? question.options[idx] 
+      : "<em>Index invalide</em>";
+  }).join(", ");
+}
+
+// Helper function to check if user's answer was correct
+function checkIfCorrect(question, userSelections, questionIndex) {
+  const userIndices = userSelections[questionIndex] || [];
+  const correctIndices = (question.correct || []).map(Number);
+  
+  // For multiple choice, check if arrays match (order doesn't matter)
+  if (userIndices.length !== correctIndices.length) {
+    return false;
+  }
+  
+  return userIndices.every(idx => correctIndices.includes(idx)) &&
+         correctIndices.every(idx => userIndices.includes(idx));
+}
+
+// Handles PDF export functionality
+async function handlePDFExport() {
+  const buttons = document.querySelectorAll('.action-buttons button');
+  
+  // Hide buttons during export
+  buttons.forEach(btn => btn.style.display = 'none');
+  
+  try {
+    const options = {
+      margin: 0.5,
+      filename: `resultat-quiz-${new Date().toISOString().split('T')[0]}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in', format: 'A4', orientation: 'portrait' },
+    };
+    
+    await window.html2pdf().set(options).from(document.body).save();
+  } catch (error) {
+    console.error('Erreur lors de la génération du PDF:', error);
+    alert('Erreur lors de l\'export PDF. Veuillez réessayer.');
+  } finally {
+    // Restore buttons
+    buttons.forEach(btn => btn.style.display = 'inline-block');
+  }
 }
 
 export function showThemeSelection({ themes = [], onThemeSelect }) {
