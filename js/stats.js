@@ -74,6 +74,21 @@ export function statesUI() {
   createThemeStats(container, history);
   createTopPlayers(container, history);
   createProgressStats(container, history);
+
+  // rendering charts
+  const chartSection = createEl("section");
+  chartSection.appendChild(createEl("h2", { text: "📊 Visualisation des Données" }));
+
+  // Create the container that the chart module expects (#stats-charts)
+  const chartContainer = createEl("div");
+  chartContainer.id = "stats-charts";
+  chartContainer.style.width = "100%";
+  chartContainer.style.maxWidth = "1000px";
+  chartContainer.style.margin = "1rem auto";
+
+  chartSection.appendChild(chartContainer);
+  container.appendChild(chartSection);
+
 }
 
 /* ---------- helpers & sections ---------- */
