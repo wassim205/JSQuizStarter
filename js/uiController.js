@@ -195,6 +195,26 @@ export function renderQuestionUI({ q, index, total }) {
 
   return { validateButton, getSelectedIndices, focusFirstInput };
 }
+function escapeHTML(str) {
+  if (str === null || typeof str === "undefined") return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function renderAnswerHTML(text) {
+  const raw = String(text ?? "");
+  const looksLikeCode = /\n/.test(raw) || /<[^>]+>/.test(raw) || raw.trim().startsWith("<");
+  const escaped = escapeHTML(raw);
+  if (looksLikeCode) {
+    return `<pre><code>${escaped}</code></pre>`;
+  }
+  // short inline answers
+  return `<span>${escaped}</span>`;
+}
 
 /* --------- show result UI (corrections, score, actions) --------- */
 export function showResultUI({
@@ -208,102 +228,141 @@ export function showResultUI({
   setTimerVisible(false);
   clearContainer();
 
-  // Package result data (onRestart kept so restart can work)
-  const resultData = { score, total, userSelections, activeQuestions, elapsedMs, onRestart };
-
-  // Tell stats module about the last result (so it can provide a back link)
-  import("./stats.js").then((module) => {
-    if (typeof module.setResultData === "function") module.setResultData(resultData);
-  });
-
+  // Update header
   pageTitle.textContent = "Quiz Terminé !";
   pageDescription.textContent = `Vous avez complété le quiz avec un score de ${score}/${total}`;
 
-  const resultContainer = createEl("div", { className: "result-container" });
+  // Build result container
+  const resultContainer = createEl("div");
+  resultContainer.className = "result-container";
 
+  // Score summary
   const scoreCard = createScoreCard(score, total, elapsedMs);
   resultContainer.appendChild(scoreCard);
 
+  // Performance message
   const message = createPerformanceMessage(score, total);
   resultContainer.appendChild(message);
 
-  const buttonsContainer = createActionButtons(onRestart, resultData);
+  // Action buttons (restart, stats, export)
+  const buttonsContainer = createActionButtons(onRestart, resultContainer);
   resultContainer.appendChild(buttonsContainer);
 
+  // Corrections
   const correctionsSection = createCorrectionsSection(activeQuestions, userSelections);
   resultContainer.appendChild(correctionsSection);
 
   mainContainer.appendChild(resultContainer);
 }
 
-/* ----- score card + helpers ----- */
+// ---------- Score card ----------
 function createScoreCard(score, total, elapsedMs) {
-  const scoreCard = createEl("div", { className: "score-card" });
-  const scoreCircle = createEl("div", { className: "score-circle" });
-
   const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
-  const scorePercentage = createEl("div", { className: "score-percentage", text: `${percentage}%` });
-  const scoreFraction = createEl("div", { className: "score-fraction", text: `${score}/${total}` });
-  scoreCircle.appendChild(scorePercentage);
-  scoreCircle.appendChild(scoreFraction);
 
-  const scoreDetails = createEl("div", { className: "score-details" });
-  const timeTaken = createEl("div", { className: "time-taken", text: `⏱️ Temps: ${formatSeconds(elapsedMs)}` });
-  const accuracy = createEl("div", { className: "accuracy", text: `🎯 Précision: ${percentage}%` });
-  scoreDetails.appendChild(timeTaken);
-  scoreDetails.appendChild(accuracy);
+  const scoreCard = createEl("div");
+  scoreCard.className = "score-card";
 
-  scoreCard.appendChild(scoreCircle);
-  scoreCard.appendChild(scoreDetails);
+  // Use innerHTML for richer layout
+  scoreCard.innerHTML = `
+    <div class="score-circle">
+      <div class="score-percentage">${percentage}%</div>
+      <div class="score-fraction">${score}/${total}</div>
+    </div>
+    <div class="score-details">
+      <div class="time-taken">⏱️ Temps: ${formatSeconds(elapsedMs)}</div>
+      <div class="accuracy">🎯 Précision: ${percentage}%</div>
+    </div>
+  `;
   return scoreCard;
 }
 
+// ---------- Performance message ----------
 function createPerformanceMessage(score, total) {
-  const messageDiv = createEl("div", { className: "performance-message" });
   const percentage = total > 0 ? (score / total) * 100 : 0;
   let messageText = "", messageType = "";
-  if (percentage < 50) { messageText = "📚 Continuez à réviser, vous progresserez !"; messageType = "average"; }
-  else if (percentage < 75) { messageText = "👍 Bon travail, vous pouvez encore vous améliorer !"; messageType = "good"; }
-  else if (percentage < 90) { messageText = "🎉 Excellent travail !"; messageType = "excellent"; }
-  else { messageText = "🏆 Performance exceptionnelle !"; messageType = "outstanding"; }
+
+  if (percentage < 50) {
+    messageText = "📚 Continuez à réviser, vous progresserez !";
+    messageType = "average";
+  } else if (percentage < 75) {
+    messageText = "👍 Bon travail, vous pouvez encore vous améliorer !";
+    messageType = "good";
+  } else if (percentage < 90) {
+    messageText = "🎉 Excellent travail !";
+    messageType = "excellent";
+  } else {
+    messageText = "🏆 Performance exceptionnelle !";
+    messageType = "outstanding";
+  }
+
+  const messageDiv = createEl("div");
+  messageDiv.className = `performance-message ${messageType}`;
   messageDiv.textContent = messageText;
-  messageDiv.classList.add(messageType);
   return messageDiv;
 }
 
-/* Build action buttons. Pass resultData so stats can link back. */
-function createActionButtons(onRestart, resultData = {}) {
-  const buttonsContainer = createEl("div", { className: "action-buttons" });
+// ---------- Action buttons (with robust PDF export) ----------
+function createActionButtons(onRestart, resultContainerNode) {
+  const buttonsContainer = createEl("div");
+  buttonsContainer.className = "action-buttons";
 
-  const restartBtn = createEl("button", { className: "btn btn-primary", text: "🔄 Recommencer le Quiz" });
-  const statsBtn = createEl("button", { className: "btn btn-secondary", text: "📊 Voir les Statistiques" });
-  const exportBtn = createEl("button", { className: "btn btn-outline", text: "📄 Exporter en PDF" });
+  const restartBtn = createEl("button");
+  restartBtn.className = "btn btn-primary";
+  restartBtn.textContent = "🔄 Recommencer le Quiz";
+
+  const statsBtn = createEl("button");
+  statsBtn.className = "btn btn-secondary";
+  statsBtn.textContent = "📊 Voir les Statistiques";
+
+  const exportBtn = createEl("button");
+  exportBtn.className = "btn btn-outline";
+  exportBtn.textContent = "📄 Exporter en PDF";
 
   buttonsContainer.appendChild(restartBtn);
   buttonsContainer.appendChild(statsBtn);
   buttonsContainer.appendChild(exportBtn);
 
-  restartBtn.addEventListener("click", () => { if (typeof onRestart === "function") onRestart(); });
+  restartBtn.addEventListener("click", () => {
+    if (typeof onRestart === "function") onRestart();
+  });
 
-  // set result data then show stats inside the same #container
   statsBtn.addEventListener("click", () => {
     import("./stats.js").then((module) => {
-      if (typeof module.setResultData === "function") module.setResultData(resultData);
+      if (typeof module.setResultData === "function") module.setResultData({
+        score: 0, total: 0 // optional; your stats module may overwrite with real data
+      });
       if (typeof module.statesUI === "function") module.statesUI();
     });
   });
 
-  // Export PDF: generate PDF from a cloned result container without action buttons
   exportBtn.addEventListener("click", async () => {
-    try {
-      const resultBlock = document.querySelector(".result-container");
+    await handlePDFExport(resultContainerNode, buttonsContainer);
+  });
 
-      // clone and remove interactive bits
-      const clone = resultBlock.cloneNode(true);
-      const actions = clone.querySelector(".action-buttons");
-      if (actions) actions.remove();
+  return buttonsContainer;
+}
 
-      // place a temporary off-screen wrapper (html2pdf needs the node in DOM)
+// ---------- PDF export (robust) ----------
+async function handlePDFExport(resultContainerNode, buttonsContainer) {
+  // Hide local action buttons while exporting
+  const localButtons = buttonsContainer.querySelectorAll("button");
+  localButtons.forEach((b) => (b.style.display = "none"));
+
+  try {
+    const options = {
+      margin: 0.5,
+      filename: `resultat-quiz-${new Date().toISOString().split("T")[0]}.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: "in", format: "A4", orientation: "portrait" },
+    };
+
+    // Select the actual node to print (prefer the .result-container)
+    const node = document.querySelector(".result-container") || resultContainerNode || document.body;
+
+    if (window && typeof window.html2pdf === "function") {
+      // Clone node and append off-screen so layout stays stable
+      const clone = node.cloneNode(true);
       const wrapper = document.createElement("div");
       wrapper.style.position = "fixed";
       wrapper.style.left = "-9999px";
@@ -311,98 +370,115 @@ function createActionButtons(onRestart, resultData = {}) {
       wrapper.appendChild(clone);
       document.body.appendChild(wrapper);
 
-      const options = {
-        margin: 0.5,
-        filename: `resultat-quiz-${new Date().toISOString().split("T")[0]}.pdf`,
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: "in", format: "A4", orientation: "portrait" },
-      };
-
-      if (!window.html2pdf) { alert("La bibliothèque html2pdf n'est pas chargée."); document.body.removeChild(wrapper); return; }
-      await window.html2pdf().set(options).from(wrapper).save();
+      await window.html2pdf().set(options).from(clone).save();
       document.body.removeChild(wrapper);
-    } catch (err) {
-      console.error("Erreur export PDF:", err);
-      alert("Erreur lors de l'export PDF.");
+    } else {
+      // fallback: open a new window and call print (safe fallback)
+      const w = window.open("", "_blank");
+      if (!w) throw new Error("Unable to open print window (popup blocker?)");
+      const styleNodes = Array.from(document.querySelectorAll("style, link[rel='stylesheet']")).map((n) => n.outerHTML).join("\n");
+      w.document.open();
+      w.document.write(`<!doctype html><html><head><meta charset="utf-8">${styleNodes}</head><body>${node.outerHTML}</body></html>`);
+      w.document.close();
+      w.focus();
+      w.print();
+      // we won't auto-close to allow the user to confirm; user closes manually
     }
-  });
-
-  return buttonsContainer;
+  } catch (err) {
+    console.error("Erreur lors de l'export PDF:", err);
+    alert("Erreur lors de l'export PDF. Essayez d'installer/charger html2pdf ou utilisez l'impression du navigateur.");
+  } finally {
+    // restore buttons
+    localButtons.forEach((b) => (b.style.display = "inline-block"));
+  }
 }
 
-/* Corrections UI */
+// ---------- Corrections & question card (uses innerHTML but safe inserts) ----------
 function createCorrectionsSection(activeQuestions = [], userSelections = []) {
-  const section = createEl("section", { className: "corrections-section" });
-  const header = createEl("h3", { className: "corrections-header", text: "🔍 Correction des Réponses" });
-  section.appendChild(header);
-  const correctionsList = createEl("div", { className: "corrections-list" });
+  const section = createEl("section");
+  section.className = "corrections-section";
 
-  (activeQuestions || []).forEach((question, index) => {
-    const questionCard = createQuestionCorrection(question, userSelections, index);
-    correctionsList.appendChild(questionCard);
+  const header = createEl("h3");
+  header.className = "corrections-header";
+  header.textContent = "🔍 Correction des Réponses";
+  section.appendChild(header);
+
+  const list = createEl("div");
+  list.className = "corrections-list";
+
+  (activeQuestions || []).forEach((q, i) => {
+    const card = createQuestionCorrection(q, userSelections, i);
+    list.appendChild(card);
   });
 
-  section.appendChild(correctionsList);
+  section.appendChild(list);
   return section;
 }
 
-/* Individual question correction card — SAFE: textContent only */
 function createQuestionCorrection(question, userSelections, questionIndex) {
-  const card = createEl("div", { className: "question-correction" });
+  const card = createEl("div");
+  card.className = "question-correction";
 
-  const userAnswers = getUserAnswers(question, userSelections, questionIndex);
-  const correctAnswers = getCorrectAnswers(question);
+  const userAnswersHTML = getUserAnswersHTML(question, userSelections, questionIndex);
+  const correctAnswersHTML = getCorrectAnswersHTML(question);
   const isCorrect = checkIfCorrect(question, userSelections, questionIndex);
 
-  const questionHeader = createEl("div", { className: "question-header" });
-  const questionNumber = createEl("span", { className: "question-number", text: `Question ${questionIndex + 1}` });
-  const statusBadge = createEl("span", { className: `status-badge ${isCorrect ? "correct" : "incorrect"}`, text: isCorrect ? "✅ Correct" : "❌ Incorrect" });
-  questionHeader.appendChild(questionNumber);
-  questionHeader.appendChild(statusBadge);
+  // Build innerHTML but using **escaped** strings above
+  card.innerHTML = `
+    <div class="question-header">
+      <span class="question-number">Question ${questionIndex + 1}</span>
+      <span class="status-badge ${isCorrect ? "correct" : "incorrect"}">${isCorrect ? "✅ Correct" : "❌ Incorrect"}</span>
+    </div>
+    <div class="question-text">${escapeHTML(question.question)}</div>
+    <div class="answers-comparison">
+      <div class="answer-row">
+        <span class="answer-label">Votre réponse:</span>
+        <span class="user-answer ${isCorrect ? "correct" : "incorrect"}">${userAnswersHTML}</span>
+      </div>
+      ${!isCorrect ? `<div class="answer-row">
+        <span class="answer-label">Réponse correcte:</span>
+        <span class="correct-answer">${correctAnswersHTML}</span>
+      </div>` : ""}
+    </div>
+  `.trim();
 
-  const questionText = createEl("div", { className: "question-text", text: question.question });
-
-  const answersComparison = createEl("div", { className: "answers-comparison" });
-  const userAnswerRow = createEl("div", { className: "answer-row" });
-  const userLabel = createEl("span", { className: "answer-label", text: "Votre réponse:" });
-  const userAnswerSpan = createEl("span", { className: `user-answer ${isCorrect ? "correct" : "incorrect"}`, text: userAnswers });
-  userAnswerRow.appendChild(userLabel);
-  userAnswerRow.appendChild(userAnswerSpan);
-  answersComparison.appendChild(userAnswerRow);
-
-  if (!isCorrect) {
-    const correctAnswerRow = createEl("div", { className: "answer-row" });
-    const correctLabel = createEl("span", { className: "answer-label", text: "Réponse correcte:" });
-    const correctAnswerSpan = createEl("span", { className: "correct-answer", text: correctAnswers });
-    correctAnswerRow.appendChild(correctLabel);
-    correctAnswerRow.appendChild(correctAnswerSpan);
-    answersComparison.appendChild(correctAnswerRow);
-  }
-
-  card.appendChild(questionHeader);
-  card.appendChild(questionText);
-  card.appendChild(answersComparison);
   return card;
 }
 
-/* Helper functions for corrections (safe — return text) */
-function getUserAnswers(question, userSelections = [], questionIndex) {
+// ---------- Helpers that return safe HTML (not raw text) ----------
+function getUserAnswersHTML(question, userSelections = [], questionIndex) {
   const userIndices = (userSelections && userSelections[questionIndex]) || [];
-  if (!Array.isArray(userIndices) || userIndices.length === 0) return "Aucune réponse sélectionnée";
-  return userIndices.map((idx) => (question.options && question.options[idx] ? question.options[idx] : "Réponse invalide")).join(", ");
+  if (!Array.isArray(userIndices) || userIndices.length === 0) {
+    return `<em>${escapeHTML("Aucune réponse sélectionnée")}</em>`;
+  }
+  return userIndices
+    .map((idx) => {
+      const text = (question.options && question.options[idx] != null) ? question.options[idx] : "(invalid selection)";
+      return renderAnswerHTML(text);
+    })
+    .join("<span>, </span>");
 }
-function getCorrectAnswers(question) {
+
+function getCorrectAnswersHTML(question) {
   const correctIndices = (question.correct || []).map(Number);
-  if (!Array.isArray(correctIndices) || correctIndices.length === 0) return "Aucune réponse correcte définie";
-  return correctIndices.map((idx) => (question.options && question.options[idx] ? question.options[idx] : "Index invalide")).join(", ");
+  if (!Array.isArray(correctIndices) || correctIndices.length === 0) {
+    return `<em>${escapeHTML("Aucune réponse correcte définie")}</em>`;
+  }
+  return correctIndices
+    .map((idx) => {
+      const text = (question.options && question.options[idx] != null) ? question.options[idx] : "(invalid index)";
+      return renderAnswerHTML(text);
+    })
+    .join("<span>, </span>");
 }
+
 function checkIfCorrect(question, userSelections = [], questionIndex) {
   const userIndices = (userSelections && userSelections[questionIndex]) || [];
   const correctIndices = (question.correct || []).map(Number);
   if (!Array.isArray(userIndices)) return false;
   if (userIndices.length !== correctIndices.length) return false;
-  return userIndices.every((idx) => correctIndices.includes(Number(idx))) && correctIndices.every((idx) => userIndices.map(Number).includes(Number(idx)));
+  return userIndices.every((idx) => correctIndices.includes(Number(idx))) &&
+         correctIndices.every((idx) => userIndices.map(Number).includes(Number(idx)));
 }
 
 /* Visual feedback function exported for other modules to use */
