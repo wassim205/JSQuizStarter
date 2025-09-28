@@ -232,11 +232,20 @@ export function showResultUI({
   pageTitle.textContent = "Quiz Terminé !";
   pageDescription.textContent = `Vous avez complété le quiz avec un score de ${score}/${total}`;
 
-  // Build result container
-  const resultContainer = createEl("div");
-  resultContainer.className = "result-container";
+  // Build result data object and inform stats module (so stats can restore/inspect)
+  const resultData = { score, total, userSelections, activeQuestions, elapsedMs, onRestart };
 
-  // Score summary
+  // Make sure stats.js has the result data available (so its UI/back navigation can restore results)
+  import("./stats.js").then((module) => {
+    if (module && typeof module.setResultData === "function") {
+      try { module.setResultData(resultData); } catch (e) { console.warn("setResultData failed", e); }
+    }
+  }).catch(() => { /* ignore if stats not present during dev */ });
+
+  // Create main result container
+  const resultContainer = createEl("div", { className: "result-container" });
+
+  // Score summary card
   const scoreCard = createScoreCard(score, total, elapsedMs);
   resultContainer.appendChild(scoreCard);
 
@@ -244,11 +253,11 @@ export function showResultUI({
   const message = createPerformanceMessage(score, total);
   resultContainer.appendChild(message);
 
-  // Action buttons (restart, stats, export)
-  const buttonsContainer = createActionButtons(onRestart, resultContainer);
+  // Action buttons (pass resultData so 'stats' handler can reuse it)
+  const buttonsContainer = createActionButtons(onRestart, resultContainer, resultData);
   resultContainer.appendChild(buttonsContainer);
 
-  // Corrections
+  // Corrections section
   const correctionsSection = createCorrectionsSection(activeQuestions, userSelections);
   resultContainer.appendChild(correctionsSection);
 
@@ -302,7 +311,7 @@ function createPerformanceMessage(score, total) {
 }
 
 // ---------- Action buttons (with robust PDF export) ----------
-function createActionButtons(onRestart, resultContainerNode) {
+function createActionButtons(onRestart, resultContainerNode, resultData = {}) {
   const buttonsContainer = createEl("div");
   buttonsContainer.className = "action-buttons";
 
@@ -327,11 +336,21 @@ function createActionButtons(onRestart, resultContainerNode) {
   });
 
   statsBtn.addEventListener("click", () => {
+    // Give stats module the resultData, clear current UI, then show stats UI
     import("./stats.js").then((module) => {
-      if (typeof module.setResultData === "function") module.setResultData({
-        score: 0, total: 0 // optional; your stats module may overwrite with real data
-      });
-      if (typeof module.statesUI === "function") module.statesUI();
+      if (module && typeof module.setResultData === "function") {
+        try { module.setResultData(resultData); } catch (e) { console.warn(e); }
+      }
+      // Clear page header / paragraph to avoid leftover "Quiz Terminé !" text
+      pageTitle.textContent = "";
+      pageDescription.textContent = "";
+      clearContainer();
+      if (module && typeof module.statesUI === "function") {
+        try { module.statesUI(); } catch (e) { console.error("stats.statesUI error", e); }
+      }
+    }).catch((err) => {
+      console.warn("Could not load stats module:", err);
+      alert("Impossible d'ouvrir les statistiques pour le moment.");
     });
   });
 
@@ -342,27 +361,36 @@ function createActionButtons(onRestart, resultContainerNode) {
   return buttonsContainer;
 }
 
+
 // ---------- PDF export (robust) ----------
 async function handlePDFExport(resultContainerNode, buttonsContainer) {
   // Hide local action buttons while exporting
-  const localButtons = buttonsContainer.querySelectorAll("button");
+  const localButtons = buttonsContainer ? buttonsContainer.querySelectorAll("button") : [];
   localButtons.forEach((b) => (b.style.display = "none"));
 
   try {
+    // bigger bottom margin (array -> [top, right, bottom, left] in inches)
     const options = {
-      margin: 0.5,
+      margin: [0.5, 0.5, 1.3, 0.5],
       filename: `resultat-quiz-${new Date().toISOString().split("T")[0]}.pdf`,
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: { scale: 2 },
       jsPDF: { unit: "in", format: "A4", orientation: "portrait" },
     };
 
-    // Select the actual node to print (prefer the .result-container)
     const node = document.querySelector(".result-container") || resultContainerNode || document.body;
 
     if (window && typeof window.html2pdf === "function") {
-      // Clone node and append off-screen so layout stays stable
+      // Clone node so we can hide interactive bits and ensure padding
       const clone = node.cloneNode(true);
+      // ensure clone has a white background and bottom padding for footer margin
+      clone.style.background = "#fff";
+      clone.style.boxSizing = "border-box";
+      clone.style.paddingBottom = "40px";
+      // remove interactive controls on clone if any
+      const interactive = clone.querySelectorAll("button, .action-buttons, input, textarea, select");
+      interactive.forEach((n) => n.remove());
+
       const wrapper = document.createElement("div");
       wrapper.style.position = "fixed";
       wrapper.style.left = "-9999px";
@@ -371,18 +399,18 @@ async function handlePDFExport(resultContainerNode, buttonsContainer) {
       document.body.appendChild(wrapper);
 
       await window.html2pdf().set(options).from(clone).save();
+
       document.body.removeChild(wrapper);
     } else {
-      // fallback: open a new window and call print (safe fallback)
+      // fallback: open print window with styles inlined
       const w = window.open("", "_blank");
       if (!w) throw new Error("Unable to open print window (popup blocker?)");
       const styleNodes = Array.from(document.querySelectorAll("style, link[rel='stylesheet']")).map((n) => n.outerHTML).join("\n");
       w.document.open();
-      w.document.write(`<!doctype html><html><head><meta charset="utf-8">${styleNodes}</head><body>${node.outerHTML}</body></html>`);
+      w.document.write(`<!doctype html><html><head><meta charset="utf-8">${styleNodes}</head><body>${escapeHTML(node.outerHTML)}</body></html>`);
       w.document.close();
       w.focus();
       w.print();
-      // we won't auto-close to allow the user to confirm; user closes manually
     }
   } catch (err) {
     console.error("Erreur lors de l'export PDF:", err);

@@ -237,6 +237,7 @@ label.correct-reveal {
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
+  padding-bottom: 40px; /* ensure extra bottom space for PDF/export */
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
