@@ -185,79 +185,43 @@ label {
 }
 
 /* Theme selection grid */
-.theme-grid {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin-top: 16px;
-  justify-content: center;
-}
-
+.theme-grid { display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; }
 .theme-card {
-  width: 130px;
-  height: 130px;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  cursor: pointer;
-  border: 2px solid #e5e7eb;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s ease;
+  width:120px; height:120px; border-radius:8px; display:flex;flex-direction:column;
+  align-items:center; justify-content:center; padding:8px; cursor:pointer;
+  border:1px solid #ddd; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.03);
 }
+.theme-card:hover { transform:translateY(-4px); box-shadow:0 6px 18px rgba(0,0,0,0.08); }
+.theme-icon { width:48px; height:48px; margin-bottom:8px; display:block; }
+.theme-label { font-size:14px; text-align:center; }
+.selected-theme { outline:3px solid #3b82f6; }
 
-.theme-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  border-color: #3b82f6;
-}
-
-.theme-icon {
-  width: 48px;
-  height: 48px;
-  margin-bottom: 12px;
-  display: block;
-  font-size: 32px;
-}
-
-.theme-label {
-  font-size: 14px;
-  text-align: center;
-  font-weight: 600;
-}
-
-.selected-theme {
-  outline: 3px solid #3b82f6;
-  background-color: #eff6ff;
-}
 
 /* Answer feedback styling */
 label.selected-correct {
   background-color: #d1fae5;
-  border: 2px solid #10b981;
+  border: 1px solid #10b981;
   color: #064e3b;
-  padding: 12px;
-  border-radius: 8px;
+  padding: 4px 6px;
+  border-radius: 6px;
 }
 
 label.selected-wrong {
   background-color: #fee2e2;
-  border: 2px solid #ef4444;
+  border: 1px solid #ef4444;
   color: #7f1d1d;
-  padding: 12px;
-  border-radius: 8px;
+  padding: 4px 6px;
+  border-radius: 6px;
 }
 
 label.correct-reveal {
   background-color: transparent;
   border: 2px dashed #34d399;
   color: #065f46;
-  padding: 12px;
-  border-radius: 8px;
+  padding: 4px 6px;
+  border-radius: 6px;
 }
+
 
 .feedback-status {
   margin-top: 16px;
