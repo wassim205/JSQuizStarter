@@ -18,7 +18,6 @@ export function createEl(tagName, properties = {}, children = []) {
   return element
 }
 
-
 export function formatSeconds(milliseconds) {
   if (milliseconds == null) return ""
   return (milliseconds / 1000).toFixed(3) + "s"
