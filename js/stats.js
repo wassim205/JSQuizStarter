@@ -1,27 +1,15 @@
-// stats.js
-// Statistics UI for the quiz. Renders inside #container and provides a "back to results" using the last saved result data.
-
 import { createEl } from "./utils.js";
 import * as Storage from "./storageService.js";
 import * as Chart from "./chart.js";
-// import Chart from 'chart.js/auto';
 let lastResultData = null;
 
-/**
- * Set the last result data so stats can provide a back button.
- * uiController.showResultUI sets this before calling statesUI.
- */
 export function setResultData(resultData) {
   lastResultData = resultData;
 }
 
-/**
- * Render statistics UI inside the main #container
- */
 export function statesUI() {
   const mainContainer = document.getElementById("container");
   if (!mainContainer) {
-    // fallback: create a container
     const body = document.body;
     while (body.firstChild) body.removeChild(body.firstChild);
     const newContainer = createEl("div");
@@ -29,11 +17,9 @@ export function statesUI() {
     body.appendChild(newContainer);
   }
 
-  // Clear content safely
   const container = document.getElementById("container");
   while (container.firstChild) container.removeChild(container.firstChild);
 
-  // Top bar: title + optional back button
   const topBar = createEl("div");
   topBar.style.display = "flex";
   topBar.style.justifyContent = "space-between";
@@ -47,27 +33,78 @@ export function statesUI() {
   title.style.margin = "0";
   topBar.appendChild(title);
 
+  let backButton;
   if (lastResultData) {
-    const backButton = createEl("button", {
+    backButton = createEl("button", {
       text: "🔙 Retour aux résultats",
       className: "btn btn-secondary",
     });
     backButton.addEventListener("click", () => {
-      // dynamic import to avoid circular top-level imports
       import("./uiController.js").then((ui) => {
-        if (typeof ui.showResultUI === "function") {
-          ui.showResultUI(lastResultData);
-        } else {
-          alert("Impossible de retourner aux résultats.");
-        }
+        if (typeof ui.showResultUI === "function") ui.showResultUI(lastResultData);
+        else alert("Impossible de retourner aux résultats.");
       });
     });
     topBar.appendChild(backButton);
   }
 
-  container.appendChild(topBar);
+  // Export controls (single selector + export button)
+  const exportControls = createEl("div");
+  exportControls.style.display = "flex";
+  exportControls.style.alignItems = "center";
+  exportControls.style.gap = "8px";
+  exportControls.style.marginLeft = "auto";
 
-  // Load history from storage
+  const targetSelect = createEl("select");
+  ["history", "stats"].forEach((v) => {
+    const o = document.createElement("option");
+    o.value = v;
+    o.textContent = v === "history" ? "Historique" : "Statistiques";
+    targetSelect.appendChild(o);
+  });
+
+  const formatSelect = createEl("select");
+  ["csv", "json"].forEach((v) => {
+    const o = document.createElement("option");
+    o.value = v;
+    o.textContent = v.toUpperCase();
+    formatSelect.appendChild(o);
+  });
+
+  const exportBtn = createEl("button", { text: "Exporter", className: "btn btn-primary" });
+
+  exportBtn.addEventListener("click", () => {
+    const target = targetSelect.value; // 'history' or 'stats'
+    const fmt = formatSelect.value; // 'csv' or 'json'
+    const history = Storage.getHistory() || [];
+    if (!history || history.length === 0) {
+      alert("Aucune donnée à exporter.");
+      return;
+    }
+
+    if (target === "history") {
+      if (fmt === "json") {
+        downloadJSON(history, "quiz_history.json");
+      } else {
+        downloadHistoryCSV(history, "quiz_history.csv");
+      }
+    } else {
+      const stats = buildStats(history);
+      if (fmt === "json") {
+        downloadJSON(stats, "quiz_stats.json");
+      } else {
+        downloadStatsCSV(stats, "quiz_stats.csv");
+      }
+    }
+  });
+container.appendChild(topBar);
+  exportControls.appendChild(targetSelect);
+  exportControls.appendChild(formatSelect);
+  exportControls.appendChild(exportBtn);
+  container.appendChild(exportControls);
+
+  // container.appendChild(topBar);
+
   const history = Storage.getHistory() || [];
   if (!history || history.length === 0) {
     container.appendChild(
@@ -83,13 +120,9 @@ export function statesUI() {
   createTopPlayers(container, history);
   createProgressStats(container, history);
 
-  // rendering charts
   const chartSection = createEl("section");
-  chartSection.appendChild(
-    createEl("h2", { text: "📊 Visualisation des Données" })
-  );
+  chartSection.appendChild(createEl("h2", { text: "📊 Visualisation des Données" }));
 
-  // Create the container that the chart module expects (#stats-charts)
   const chartContainer = createEl("div");
   const chartBarCanvas = createEl("canvas");
   const chartLineCanvas = createEl("canvas");
@@ -185,9 +218,7 @@ function createGeneralStats(container, history) {
 
 function createThemeStats(container, history) {
   const section = createEl("section");
-  section.appendChild(
-    createEl("h2", { text: "🎯 Statistiques par Thématique" })
-  );
+  section.appendChild(createEl("h2", { text: "🎯 Statistiques par Thématique" }));
 
   const themeStats = history.reduce((acc, game) => {
     const theme = game.theme || "Non spécifié";
@@ -234,7 +265,6 @@ function createThemeStats(container, history) {
       stats.scores.length > 0 ? Math.max(...stats.scores) * 100 : 0;
     row.appendChild(createEl("td", { text: `${bestScore.toFixed(1)}%` }));
 
-    // small styling
     Array.from(row.children).forEach((td) => {
       td.style.border = "1px solid #ddd";
       td.style.padding = "0.75rem";
@@ -250,9 +280,7 @@ function createThemeStats(container, history) {
 
 function createTopPlayers(container, history) {
   const section = createEl("section");
-  section.appendChild(
-    createEl("h2", { text: "🏆 Classement des Meilleurs Joueurs" })
-  );
+  section.appendChild(createEl("h2", { text: "🏆 Classement des Meilleurs Joueurs" }));
 
   const playerBestScores = history.reduce((acc, game) => {
     const username = game.username || "Anonyme";
@@ -273,9 +301,7 @@ function createTopPlayers(container, history) {
     .slice(0, 5);
 
   if (topPlayers.length === 0) {
-    section.appendChild(
-      createEl("p", { text: "Aucun joueur à classer pour le moment." })
-    );
+    section.appendChild(createEl("p", { text: "Aucun joueur à classer pour le moment." }));
     container.appendChild(section);
     return;
   }
@@ -306,21 +332,11 @@ function createTopPlayers(container, history) {
       playerCard.style.backgroundColor = "#F8E4C8";
     }
 
-    playerCard.appendChild(
-      createEl("div", { text: idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉" })
-    );
+    playerCard.appendChild(createEl("div", { text: idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉" }));
     playerCard.appendChild(createEl("div", { text: player.username }));
-    playerCard.appendChild(
-      createEl("div", { text: `${(player.score * 100).toFixed(1)}%` })
-    );
-    playerCard.appendChild(
-      createEl("div", { text: player.theme || "Non spécifié" })
-    );
-    playerCard.appendChild(
-      createEl("div", {
-        text: player.date ? new Date(player.date).toLocaleDateString() : "",
-      })
-    );
+    playerCard.appendChild(createEl("div", { text: `${(player.score * 100).toFixed(1)}%` }));
+    playerCard.appendChild(createEl("div", { text: player.theme || "Non spécifié" }));
+    playerCard.appendChild(createEl("div", { text: player.date ? new Date(player.date).toLocaleDateString() : "" }));
 
     rankingContainer.appendChild(playerCard);
   });
@@ -333,15 +349,9 @@ function createProgressStats(container, history) {
   const section = createEl("section");
   section.appendChild(createEl("h2", { text: "📈 Progression dans le Temps" }));
 
-  const sortedHistory = [...history].sort(
-    (a, b) => new Date(a.date) - new Date(b.date)
-  );
+  const sortedHistory = [...history].sort((a, b) => new Date(a.date) - new Date(b.date));
   if (sortedHistory.length < 2) {
-    section.appendChild(
-      createEl("p", {
-        text: "Pas assez de données pour afficher la progression.",
-      })
-    );
+    section.appendChild(createEl("p", { text: "Pas assez de données pour afficher la progression." }));
     container.appendChild(section);
     return;
   }
@@ -361,27 +371,9 @@ function createProgressStats(container, history) {
   progressInfo.style.marginLeft = "auto";
   progressInfo.style.marginRight = "auto";
 
-  progressInfo.appendChild(
-    createEl("p", {
-      text: `Première partie: ${firstScore.toFixed(1)}% (${new Date(
-        firstGame.date
-      ).toLocaleDateString()})`,
-    })
-  );
-  progressInfo.appendChild(
-    createEl("p", {
-      text: `Dernière partie: ${lastScore.toFixed(1)}% (${new Date(
-        lastGame.date
-      ).toLocaleDateString()})`,
-    })
-  );
-  progressInfo.appendChild(
-    createEl("p", {
-      text: `Progression: ${
-        scoreImprovement >= 0 ? "+" : ""
-      }${scoreImprovement.toFixed(1)}%`,
-    })
-  );
+  progressInfo.appendChild(createEl("p", { text: `Première partie: ${firstScore.toFixed(1)}% (${new Date(firstGame.date).toLocaleDateString()})` }));
+  progressInfo.appendChild(createEl("p", { text: `Dernière partie: ${lastScore.toFixed(1)}% (${new Date(lastGame.date).toLocaleDateString()})` }));
+  progressInfo.appendChild(createEl("p", { text: `Progression: ${scoreImprovement >= 0 ? "+" : ""}${scoreImprovement.toFixed(1)}%` }));
 
   section.appendChild(progressInfo);
 
@@ -423,4 +415,81 @@ function createProgressStats(container, history) {
 
   section.appendChild(recentTable);
   container.appendChild(section);
+}
+
+/* ---------- exports & download helpers ---------- */
+
+function downloadBlob(content, filename, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function downloadJSON(obj, filename) {
+  downloadBlob(JSON.stringify(obj, null, 2), filename, "application/json;charset=utf-8;");
+}
+
+function downloadHistoryCSV(history, filename) {
+  const headers = ["username", "date", "score", "level", "theme", "elapsedMs"];
+  const rows = [headers.join(",")];
+  history.forEach((game) => {
+    const row = headers.map((h) => {
+      let val = game[h];
+      if (val == null) val = "";
+      return `"${String(val).replace(/"/g, '""')}"`;
+    });
+    rows.push(row.join(","));
+  });
+  const csvContent = "\uFEFF" + rows.join("\n");
+  downloadBlob(csvContent, filename, "text/csv;charset=utf-8;");
+}
+
+function downloadStatsCSV(statsObj, filename) {
+  const rows = [["metric","value"]];
+  Object.entries(statsObj).forEach(([k, v]) => {
+    rows.push([k, `"${String(typeof v === "object" ? JSON.stringify(v) : v).replace(/"/g,'""')}"`]);
+  });
+  const csv = "\uFEFF" + rows.map(r => r.join(",")).join("\n");
+  downloadBlob(csv, filename, "text/csv;charset=utf-8;");
+}
+
+function buildStats(history) {
+  // theme counts
+  const themeMap = history.reduce((acc, g) => {
+    const t = g.theme || "Non spécifié";
+    acc[t] = (acc[t] || 0) + 1;
+    return acc;
+  }, {});
+  const themeCounts = Object.entries(themeMap).map(([theme, plays]) => ({ theme, plays }));
+
+  // progression (date, score)
+  const progression = history
+    .map(h => ({ date: h.date || "", score: parseScore(h.score) }))
+    .filter(x => x.date)
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  // top players
+  const best = history.reduce((acc, game) => {
+    const u = game.username || "Anonyme";
+    const s = parseScore(game.score);
+    if (!acc[u] || s > acc[u].score) acc[u] = { score: s, theme: game.theme, date: game.date };
+    return acc;
+  }, {});
+  const topPlayers = Object.entries(best).map(([username, data]) => ({ username, ...data }))
+    .sort((a,b) => b.score - a.score)
+    .slice(0, 10);
+
+  return {
+    generatedAt: new Date().toISOString(),
+    totalGames: history.length,
+    themeCounts,
+    progression,
+    topPlayers
+  };
 }

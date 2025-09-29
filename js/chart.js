@@ -33,13 +33,12 @@ export function barChart(history) {
   });
 }
 
-
 export function lineChart(history) {
-     const ctx = document.getElementById("stats-line-charts");
+  const ctx = document.getElementById("stats-line-charts");
 
   new Chart(ctx, {
     type: "line",
-      data: {
+    data: {
       labels: history.map((game, index) => `Partie ${index + 1}`),
       datasets: [
         {
@@ -49,14 +48,14 @@ export function lineChart(history) {
             return ((correct / total) * 100).toFixed(2); // Convert to percentage
           }),
           fill: false,
-          borderColor: 'rgb(75, 192, 192)',
+          borderColor: "rgb(75, 192, 192)",
           tension: 0.1,
           borderWidth: 1,
         },
       ],
     },
-      options: {
-        responsive: true,
+    options: {
+      responsive: true,
       scales: {
         y: {
           beginAtZero: true,
