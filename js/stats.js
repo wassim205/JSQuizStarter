@@ -3,7 +3,8 @@
 
 import { createEl } from "./utils.js";
 import * as Storage from "./storageService.js";
-
+import * as Chart from "./chart.js";
+// import Chart from 'chart.js/auto';
 let lastResultData = null;
 
 /**
@@ -47,7 +48,10 @@ export function statesUI() {
   topBar.appendChild(title);
 
   if (lastResultData) {
-    const backButton = createEl("button", { text: "🔙 Retour aux résultats", className: "btn btn-secondary" });
+    const backButton = createEl("button", {
+      text: "🔙 Retour aux résultats",
+      className: "btn btn-secondary",
+    });
     backButton.addEventListener("click", () => {
       // dynamic import to avoid circular top-level imports
       import("./uiController.js").then((ui) => {
@@ -66,7 +70,11 @@ export function statesUI() {
   // Load history from storage
   const history = Storage.getHistory() || [];
   if (!history || history.length === 0) {
-    container.appendChild(createEl("p", { text: "Aucune donnée statistique disponible. Jouez d'abord à quelques quiz !" }));
+    container.appendChild(
+      createEl("p", {
+        text: "Aucune donnée statistique disponible. Jouez d'abord à quelques quiz !",
+      })
+    );
     return;
   }
 
@@ -77,18 +85,26 @@ export function statesUI() {
 
   // rendering charts
   const chartSection = createEl("section");
-  chartSection.appendChild(createEl("h2", { text: "📊 Visualisation des Données" }));
+  chartSection.appendChild(
+    createEl("h2", { text: "📊 Visualisation des Données" })
+  );
 
   // Create the container that the chart module expects (#stats-charts)
   const chartContainer = createEl("div");
-  chartContainer.id = "stats-charts";
-  chartContainer.style.width = "100%";
-  chartContainer.style.maxWidth = "1000px";
-  chartContainer.style.margin = "1rem auto";
+  const chartBarCanvas = createEl("canvas");
+  const chartLineCanvas = createEl("canvas");
+  chartBarCanvas.id = "stats-bar-charts";
+  chartLineCanvas.id = "stats-line-charts";
+  chartContainer.appendChild(chartBarCanvas);
+  chartContainer.appendChild(chartLineCanvas);
+  chartContainer.style.maxWidth = "800px";
+  chartContainer.style.margin = "0 auto";
 
   chartSection.appendChild(chartContainer);
   container.appendChild(chartSection);
 
+  Chart.barChart(history);
+  Chart.lineChart(history);
 }
 
 /* ---------- helpers & sections ---------- */
@@ -108,7 +124,8 @@ function createGeneralStats(container, history) {
 
   const totalGames = history.length;
   const totalPlayers = new Set(history.map((g) => g.username)).size;
-  const averageScore = history.reduce((s, g) => s + parseScore(g.score), 0) / totalGames;
+  const averageScore =
+    history.reduce((s, g) => s + parseScore(g.score), 0) / totalGames;
   const totalTimePlayed = history.reduce((s, g) => s + (g.elapsedMs || 0), 0);
 
   const statsGrid = createEl("div");
@@ -123,8 +140,16 @@ function createGeneralStats(container, history) {
   const statCards = [
     { label: "Parties Jouées", value: totalGames, icon: "🎮" },
     { label: "Joueurs Uniques", value: totalPlayers, icon: "👥" },
-    { label: "Score Moyen", value: `${(averageScore * 100).toFixed(1)}%`, icon: "📈" },
-    { label: "Temps Total", value: `${Math.round(totalTimePlayed / 1000 / 60)} min`, icon: "⏱️" },
+    {
+      label: "Score Moyen",
+      value: `${(averageScore * 100).toFixed(1)}%`,
+      icon: "📈",
+    },
+    {
+      label: "Temps Total",
+      value: `${Math.round(totalTimePlayed / 1000 / 60)} min`,
+      icon: "⏱️",
+    },
   ];
 
   statCards.forEach((stat) => {
@@ -160,7 +185,9 @@ function createGeneralStats(container, history) {
 
 function createThemeStats(container, history) {
   const section = createEl("section");
-  section.appendChild(createEl("h2", { text: "🎯 Statistiques par Thématique" }));
+  section.appendChild(
+    createEl("h2", { text: "🎯 Statistiques par Thématique" })
+  );
 
   const themeStats = history.reduce((acc, game) => {
     const theme = game.theme || "Non spécifié";
@@ -181,13 +208,15 @@ function createThemeStats(container, history) {
   table.style.marginRight = "auto";
 
   const headerRow = createEl("tr");
-  ["Thématique", "Parties Jouées", "Score Moyen", "Meilleur Score"].forEach((h) => {
-    const th = createEl("th", { text: h });
-    th.style.border = "1px solid #ddd";
-    th.style.padding = "0.75rem";
-    th.style.backgroundColor = "#f2f2f2";
-    headerRow.appendChild(th);
-  });
+  ["Thématique", "Parties Jouées", "Score Moyen", "Meilleur Score"].forEach(
+    (h) => {
+      const th = createEl("th", { text: h });
+      th.style.border = "1px solid #ddd";
+      th.style.padding = "0.75rem";
+      th.style.backgroundColor = "#f2f2f2";
+      headerRow.appendChild(th);
+    }
+  );
   table.appendChild(headerRow);
 
   Object.entries(themeStats).forEach(([theme, stats]) => {
@@ -197,14 +226,20 @@ function createThemeStats(container, history) {
     countCell.style.textAlign = "center";
     row.appendChild(countCell);
 
-    const avgScore = stats.count > 0 ? (stats.totalScore / stats.count) * 100 : 0;
+    const avgScore =
+      stats.count > 0 ? (stats.totalScore / stats.count) * 100 : 0;
     row.appendChild(createEl("td", { text: `${avgScore.toFixed(1)}%` }));
 
-    const bestScore = stats.scores.length > 0 ? Math.max(...stats.scores) * 100 : 0;
+    const bestScore =
+      stats.scores.length > 0 ? Math.max(...stats.scores) * 100 : 0;
     row.appendChild(createEl("td", { text: `${bestScore.toFixed(1)}%` }));
 
     // small styling
-    Array.from(row.children).forEach((td) => { td.style.border = "1px solid #ddd"; td.style.padding = "0.75rem"; td.style.textAlign = "center"; });
+    Array.from(row.children).forEach((td) => {
+      td.style.border = "1px solid #ddd";
+      td.style.padding = "0.75rem";
+      td.style.textAlign = "center";
+    });
     row.firstChild.style.textAlign = "";
     table.appendChild(row);
   });
@@ -215,18 +250,35 @@ function createThemeStats(container, history) {
 
 function createTopPlayers(container, history) {
   const section = createEl("section");
-  section.appendChild(createEl("h2", { text: "🏆 Classement des Meilleurs Joueurs" }));
+  section.appendChild(
+    createEl("h2", { text: "🏆 Classement des Meilleurs Joueurs" })
+  );
 
   const playerBestScores = history.reduce((acc, game) => {
     const username = game.username || "Anonyme";
     const score = parseScore(game.score);
-    if (!acc[username] || score > acc[username].score) acc[username] = { score, theme: game.theme, date: game.date };
+    if (!acc[username] || score > acc[username].score)
+      acc[username] = { score, theme: game.theme, date: game.date };
     return acc;
   }, {});
 
-  const topPlayers = Object.entries(playerBestScores).map(([username, data]) => ({ username, score: data.score, theme: data.theme, date: data.date })).sort((a, b) => b.score - a.score).slice(0, 5);
+  const topPlayers = Object.entries(playerBestScores)
+    .map(([username, data]) => ({
+      username,
+      score: data.score,
+      theme: data.theme,
+      date: data.date,
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5);
 
-  if (topPlayers.length === 0) { section.appendChild(createEl("p", { text: "Aucun joueur à classer pour le moment." })); container.appendChild(section); return; }
+  if (topPlayers.length === 0) {
+    section.appendChild(
+      createEl("p", { text: "Aucun joueur à classer pour le moment." })
+    );
+    container.appendChild(section);
+    return;
+  }
 
   const rankingContainer = createEl("div");
   rankingContainer.style.display = "flex";
@@ -243,15 +295,32 @@ function createTopPlayers(container, history) {
     playerCard.style.textAlign = "center";
     playerCard.style.width = "150px";
 
-    if (idx === 0) { playerCard.style.borderColor = "#FFD700"; playerCard.style.backgroundColor = "#FFF9C4"; }
-    else if (idx === 1) { playerCard.style.borderColor = "#C0C0C0"; playerCard.style.backgroundColor = "#F5F5F5"; }
-    else { playerCard.style.borderColor = "#CD7F32"; playerCard.style.backgroundColor = "#F8E4C8"; }
+    if (idx === 0) {
+      playerCard.style.borderColor = "#FFD700";
+      playerCard.style.backgroundColor = "#FFF9C4";
+    } else if (idx === 1) {
+      playerCard.style.borderColor = "#C0C0C0";
+      playerCard.style.backgroundColor = "#F5F5F5";
+    } else {
+      playerCard.style.borderColor = "#CD7F32";
+      playerCard.style.backgroundColor = "#F8E4C8";
+    }
 
-    playerCard.appendChild(createEl("div", { text: idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉" }));
+    playerCard.appendChild(
+      createEl("div", { text: idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉" })
+    );
     playerCard.appendChild(createEl("div", { text: player.username }));
-    playerCard.appendChild(createEl("div", { text: `${(player.score * 100).toFixed(1)}%` }));
-    playerCard.appendChild(createEl("div", { text: player.theme || "Non spécifié" }));
-    playerCard.appendChild(createEl("div", { text: player.date ? new Date(player.date).toLocaleDateString() : "" }));
+    playerCard.appendChild(
+      createEl("div", { text: `${(player.score * 100).toFixed(1)}%` })
+    );
+    playerCard.appendChild(
+      createEl("div", { text: player.theme || "Non spécifié" })
+    );
+    playerCard.appendChild(
+      createEl("div", {
+        text: player.date ? new Date(player.date).toLocaleDateString() : "",
+      })
+    );
 
     rankingContainer.appendChild(playerCard);
   });
@@ -264,8 +333,18 @@ function createProgressStats(container, history) {
   const section = createEl("section");
   section.appendChild(createEl("h2", { text: "📈 Progression dans le Temps" }));
 
-  const sortedHistory = [...history].sort((a, b) => new Date(a.date) - new Date(b.date));
-  if (sortedHistory.length < 2) { section.appendChild(createEl("p", { text: "Pas assez de données pour afficher la progression." })); container.appendChild(section); return; }
+  const sortedHistory = [...history].sort(
+    (a, b) => new Date(a.date) - new Date(b.date)
+  );
+  if (sortedHistory.length < 2) {
+    section.appendChild(
+      createEl("p", {
+        text: "Pas assez de données pour afficher la progression.",
+      })
+    );
+    container.appendChild(section);
+    return;
+  }
 
   const firstGame = sortedHistory[0];
   const lastGame = sortedHistory[sortedHistory.length - 1];
@@ -282,9 +361,27 @@ function createProgressStats(container, history) {
   progressInfo.style.marginLeft = "auto";
   progressInfo.style.marginRight = "auto";
 
-  progressInfo.appendChild(createEl("p", { text: `Première partie: ${firstScore.toFixed(1)}% (${new Date(firstGame.date).toLocaleDateString()})` }));
-  progressInfo.appendChild(createEl("p", { text: `Dernière partie: ${lastScore.toFixed(1)}% (${new Date(lastGame.date).toLocaleDateString()})` }));
-  progressInfo.appendChild(createEl("p", { text: `Progression: ${scoreImprovement >= 0 ? "+" : ""}${scoreImprovement.toFixed(1)}%` }));
+  progressInfo.appendChild(
+    createEl("p", {
+      text: `Première partie: ${firstScore.toFixed(1)}% (${new Date(
+        firstGame.date
+      ).toLocaleDateString()})`,
+    })
+  );
+  progressInfo.appendChild(
+    createEl("p", {
+      text: `Dernière partie: ${lastScore.toFixed(1)}% (${new Date(
+        lastGame.date
+      ).toLocaleDateString()})`,
+    })
+  );
+  progressInfo.appendChild(
+    createEl("p", {
+      text: `Progression: ${
+        scoreImprovement >= 0 ? "+" : ""
+      }${scoreImprovement.toFixed(1)}%`,
+    })
+  );
 
   section.appendChild(progressInfo);
 
